@@ -1,0 +1,233 @@
+---
+title: "Modelos - Punto Extra"
+lang: es
+author: "Marcelino"
+date: today
+format:
+  html:
+    page-layout: full
+    embed-resources: true
+---
+
+# Intrucciones
+
+Considera dos variables $X$ y $Y$ con distribución exponencial donde una tiene valor esperado que sea el doble del valor esperado de la otra (tú decides el parámetro).
+
+1.  Escoge al menos 5 tipos de cópulas para modelar la dependencia entre ellas, para cada cópula escoge parámetros que reflejen una dependencia negativa y una dependencia positiva (en total tendrás 10 modelos). Para cada uno de los 10 modelos:
+    a.  Muestra la función de distribución conjunta de $X$ y $Y$ (la fórmula).
+    b.  Grafica la función de densidad conjunta de $X$ y $Y$.
+    c.  Varianza de $X$, $Y$ y $X + Y$.
+    d.  Desviación estándar de $X$, $Y$ y $X + Y$.
+    e.  Cuantil al 95% de $X$, $Y$ y $X + Y$.
+    f.  Valor esperado condicional de la cola al 95% de $X$, $Y$ y $X + Y$.
+
+2.  Repite el inciso anterior; pero ahora considera que $X$ y $Y$ tienen distribución pareto donde una tiene valor esperado que sea el doble del valor esperado de la otra (tú decides los parámetros).
+
+# Solución
+
+## Caso Expoencial
+
+Tenemos las siguientes variables aleatorias:
+
+$$X\sim \textbf{Exp}(\lambda)$$
+
+$$Y\sim \textbf{Exp}(2\lambda)$$
+
+donde $F_{x}(x)=1-e^{-\lambda x}$ y $F_{y}(y)=1-e^{-2\lambda y}$
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(copula)
+library(lattice)
+
+# Exponential distribution for both marginals
+lambda <- 1
+# Parameters for the marginals
+# You can adjust these parameters as needed
+params1 <- list(rate = lambda) # Rate for the first exponential distribution
+params2 <- list(rate = 2*lambda) # Rate for the second exponential distribution
+
+```
+
+### Cópula Gaussiana
+
+$$C(u,v)=\Phi_{2}(\Phi^{-1}(u),\Phi^{-1}(v))$$
+
+```{r}
+# Define the copula
+# Here, for example, is a correlation of 0.5; adjust as needed
+# Negative correlation
+myCopulaNegative <- normalCopula(-0.9, dim = 2)
+
+# Positive correlation
+myCopulaPositive <- normalCopula(0.9, dim = 2)
+
+# Number of samples
+n <- 10000
+
+# Generating samples for the negative correlation
+set.seed(123)
+samplesNegative <- rCopula(n, myCopulaNegative)
+samplesNegative[,1] <- qexp(samplesNegative[,1], rate = params1$rate)
+samplesNegative[,2] <- qexp(samplesNegative[,2], rate = params2$rate)
+
+# Generating samples for the positive correlation
+set.seed(123)
+samplesPositive <- rCopula(n, myCopulaPositive)
+samplesPositive[,1] <- qexp(samplesPositive[,1], rate = params1$rate)
+samplesPositive[,2] <- qexp(samplesPositive[,2], rate = params2$rate)
+
+# Plotting
+par(mfrow = c(1, 2))
+plot(samplesNegative, col = 'red', main = 'Negative Correlation', xlab = 'X', ylab = 'Y')
+plot(samplesPositive, col = 'blue', main = 'Positive Correlation', xlab = 'X', ylab = 'Y')
+
+```
+
+
+```{r}
+
+
+# Tus parámetros y código previo aquí...
+
+# Calcula las estadísticas para las muestras generadas
+# Puedes hacerlo tanto para la correlación negativa como para la positiva
+
+# Para la correlación negativa (o positiva, según corresponda)
+X_Negative <- samplesNegative[,1]
+Y_Negative <- samplesNegative[,2]
+Sum_XY_Negative <- X_Negative + Y_Negative
+
+# Varianza
+var_X_Negative <- var(X_Negative)
+var_Y_Negative <- var(Y_Negative)
+var_Sum_XY_Negative <- var(Sum_XY_Negative)
+
+# Desviación estándar
+sd_X_Negative <- sd(X_Negative)
+sd_Y_Negative <- sd(Y_Negative)
+sd_Sum_XY_Negative <- sd(Sum_XY_Negative)
+
+# Cuantil al 95%
+quantile_X_95_Negative <- quantile(X_Negative, 0.95)
+quantile_Y_95_Negative <- quantile(Y_Negative, 0.95)
+quantile_Sum_XY_95_Negative <- quantile(Sum_XY_Negative, 0.95)
+
+# Valor esperado condicional de la cola al 95%
+mean_X_Tail_95_Negative <- mean(X_Negative[X_Negative > quantile_X_95_Negative])
+mean_Y_Tail_95_Negative <- mean(Y_Negative[Y_Negative > quantile_Y_95_Negative])
+mean_Sum_XY_Tail_95_Negative <- mean(Sum_XY_Negative[Sum_XY_Negative > quantile_Sum_XY_95_Negative])
+
+# Imprimir los resultados
+cat("Correlación Negativa:\n")
+cat("Varianzas: X =", var_X_Negative, ", Y =", var_Y_Negative, ", X + Y =", var_Sum_XY_Negative, "\n")
+cat("Desviaciones Estándar: X =", sd_X_Negative, ", Y =", sd_Y_Negative, ", X + Y =", sd_Sum_XY_Negative, "\n")
+cat("Cuantiles al 95%: X =", quantile_X_95_Negative, ", Y =", quantile_Y_95_Negative, ", X + Y =", quantile_Sum_XY_95_Negative, "\n")
+cat("Valor esperado condicional de la cola al 95%: X =", mean_X_Tail_95_Negative, ", Y =", mean_Y_Tail_95_Negative, ", X + Y =", mean_Sum_XY_Tail_95_Negative, "\n")
+
+# Repite los cálculos para la correlación positiva si es necesario
+
+```
+
+```{r}
+# Suponiendo que ya tienes definidos samplesPositive, y los parámetros params1 y params2
+
+# Variables para la correlación positiva
+X_Positive <- samplesPositive[,1]
+Y_Positive <- samplesPositive[,2]
+Sum_XY_Positive <- X_Positive + Y_Positive
+
+# Varianza
+var_X_Positive <- var(X_Positive)
+var_Y_Positive <- var(Y_Positive)
+var_Sum_XY_Positive <- var(Sum_XY_Positive)
+
+# Desviación estándar
+sd_X_Positive <- sd(X_Positive)
+sd_Y_Positive <- sd(Y_Positive)
+sd_Sum_XY_Positive <- sd(Sum_XY_Positive)
+
+# Cuantil al 95%
+quantile_X_95_Positive <- quantile(X_Positive, 0.95)
+quantile_Y_95_Positive <- quantile(Y_Positive, 0.95)
+quantile_Sum_XY_95_Positive <- quantile(Sum_XY_Positive, 0.95)
+
+# Valor esperado condicional de la cola al 95%
+mean_X_Tail_95_Positive <- mean(X_Positive[X_Positive > quantile_X_95_Positive])
+mean_Y_Tail_95_Positive <- mean(Y_Positive[Y_Positive > quantile_Y_95_Positive])
+mean_Sum_XY_Tail_95_Positive <- mean(Sum_XY_Positive[Sum_XY_Positive > quantile_Sum_XY_95_Positive])
+
+# Imprimir los resultados para la correlación positiva
+cat("Correlación Positiva:\n")
+cat("Varianzas: X =", var_X_Positive, ", Y =", var_Y_Positive, ", X + Y =", var_Sum_XY_Positive, "\n")
+cat("Desviaciones Estándar: X =", sd_X_Positive, ", Y =", sd_Y_Positive, ", X + Y =", sd_Sum_XY_Positive, "\n")
+cat("Cuantiles al 95%: X =", quantile_X_95_Positive, ", Y =", quantile_Y_95_Positive, ", X + Y =", quantile_Sum_XY_95_Positive, "\n")
+cat("Valor esperado condicional de la cola al 95%: X =", mean_X_Tail_95_Positive, ", Y =", mean_Y_Tail_95_Positive, ", X + Y =", mean_Sum_XY_Tail_95_Positive, "\n")
+  
+```
+
+### Cópula Marshall-Olkin
+
+$$C(u,v)=(1-u)(1-v)\textbf{mín}\{(1-u)^{-\alpha_{1}},(1-u)^{-\alpha_{1}}\}$$
+
+
+
+### Arquimediana 1
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=(-\ln u)^{\theta}$
+
+
+### Arquimediana 2
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=\ln(1-\theta\ln(u))$
+
+### Arquimediana 3
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=(1-\ln(u))^{\theta}-1$
+
+## Caso Pareto
+
+Tenemos las siguientes variables aleatorias:
+
+$$X\sim \textbf{Pareto}(\alpha, 2\nu)$$
+
+$$Y\sim \textbf{Pareto}(\alpha, \nu)$$
+
+donde $F_{x}(x)=1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}$ y $F_{y}(y)=1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}$
+
+### Cópula Gaussiana
+
+$$C(u,v)=\Phi_{2}(\Phi^{-1}(u),\Phi^{-1}(v))$$
+
+### Cópula Marshall-Olkin
+
+$$C(u,v)=(1-u)(1-v)\textbf{mín}\{(1-u)^{-\alpha_{1}},(1-u)^{-\alpha_{1}}\}$$
+
+### Arquimediana 1
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=(-\ln u)^{\theta}$
+
+
+### Arquimediana 2
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=\ln(1-\theta\ln(u))$
+
+### Arquimediana 3
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=(1-\ln(u))^{\theta}-1$
+
+
+
+
+
