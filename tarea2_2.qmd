@@ -1,0 +1,35 @@
+---
+title: "Modelos -Tarea 2_2"
+lang: es
+author: "Marcelino"
+date: today
+format:
+  html:
+    page-layout: full
+    embed-resources: true
+---
+# Ejercicio 6
+```{r}
+# Función objetivo
+f <- function(x) {
+  return(19/24 + (1/384)*(x**4 -12*x**3 + 432*x - 1216)-.9)
+}
+
+# Buscar la raíz en el intervalo [0, 3]
+resultado <- uniroot(f, c(0, 6))
+
+# Imprimir el resultado
+cat("La raíz encontrada es:", resultado$root, "\n")
+
+varRes <- resultado$root
+
+```
+
+# Ejercicio 7
+
+```{r}
+
+
+
+tvarRes <- varRes
+```
