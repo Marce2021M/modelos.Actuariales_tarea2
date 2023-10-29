@@ -25,7 +25,7 @@ Considera dos variables $X$ y $Y$ con distribución exponencial donde una tiene 
 
 # Solución
 
-## Caso Expoencial
+## Caso Exponencial
 
 Tenemos las siguientes variables aleatorias:
 
@@ -43,133 +43,197 @@ library(lattice)
 lambda <- 1
 # Parameters for the marginals
 # You can adjust these parameters as needed
-params1 <- list(rate = lambda) # Rate for the first exponential distribution
-params2 <- list(rate = 2*lambda) # Rate for the second exponential distribution
+params1 <- lambda # Rate for the first exponential distribution
+params2 <- 2*lambda # Rate for the second exponential distribution
 
 ```
 
 ### Cópula Gaussiana
 
-$$C(u,v)=\Phi_{2}(\Phi^{-1}(u),\Phi^{-1}(v))$$
+$$C(u,v)=\Phi_{2}(\Phi^{-1}(u),\Phi^{-1}(v), \rho)$$
 
-```{r}
-# Define the copula
-# Here, for example, is a correlation of 0.5; adjust as needed
-# Negative correlation
-myCopulaNegative <- normalCopula(-0.9, dim = 2)
+donde $\Phi_{2}$ es la función de distribución conjunta de una distribución normal bivariada con media cero y varianza uno y covarianza $\rho$ (esta determinará la relación negativa o positiva de las variables); y $\Phi$ es la función de distribución de una distribución normal estándar.
 
-# Positive correlation
-myCopulaPositive <- normalCopula(0.9, dim = 2)
 
-# Number of samples
+#### Función de distribución conjunta
+
+$$H(x, y) = \Phi_{2}\left(\Phi^{-1}(1 - e^{-\lambda x}), \Phi^{-1}(1 - e^{-2\lambda y}); \rho \right)$$
+
+#### Función de densidad conjunta
+
+```{r, message=FALSE, warning=FALSE}
+library(copula)
+
+rho =.9
+
+# Definir cópula gaussiana
+myCopulaP <- normalCopula(rho, dim = 2)
+myCopulaN <- normalCopula(-rho, dim = 2)
+
+# Número de muestras
 n <- 10000
 
-# Generating samples for the negative correlation
+# Generar muestras de la cópula
 set.seed(123)
-samplesNegative <- rCopula(n, myCopulaNegative)
-samplesNegative[,1] <- qexp(samplesNegative[,1], rate = params1$rate)
-samplesNegative[,2] <- qexp(samplesNegative[,2], rate = params2$rate)
+samples <- rCopula(n, myCopulaP) # caso positivo
+samples2 <- rCopula(n, myCopulaN) # caso negativo
 
-# Generating samples for the positive correlation
-set.seed(123)
-samplesPositive <- rCopula(n, myCopulaPositive)
-samplesPositive[,1] <- qexp(samplesPositive[,1], rate = params1$rate)
-samplesPositive[,2] <- qexp(samplesPositive[,2], rate = params2$rate)
+# Convertir las muestras a distribuciones exponenciales
 
-# Plotting
-par(mfrow = c(1, 2))
-plot(samplesNegative, col = 'red', main = 'Negative Correlation', xlab = 'X', ylab = 'Y')
-plot(samplesPositive, col = 'blue', main = 'Positive Correlation', xlab = 'X', ylab = 'Y')
+## caso positivo
+samples[,1] <- qexp(samples[,1], rate = params1)
+samples[,2] <- qexp(samples[,2], rate = params2)
 
+## caso negativo
+samples2[,1] <- qexp(samples2[,1], rate = params1)
+samples2[,2] <- qexp(samples2[,2], rate = params2)
+
+
+library(ks)
+
+# Estimación de la densidad
+dens <- kde(as.matrix(samples)) # caso positivo
+dens2 <- kde(as.matrix(samples2)) # caso negativo
+
+library(plotly)
+
+# Convertir la estimación de densidad a un formato adecuado
+
+## caso positivo
+x <- dens$eval.points[[1]] 
+y <- dens$eval.points[[2]]
+z <- matrix(dens$estimate, nrow = length(x), ncol = length(y))
+## caso negativo
+x2 <- dens2$eval.points[[1]] 
+y2 <- dens2$eval.points[[2]]
+z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
 ```
 
 
+##### Caso Positivo
 ```{r}
 
+# Crear gráfico 3D
+## caso positivo
+plot_ly(x = ~x, y = ~y, z = ~z, type = "surface")
 
-# Tus parámetros y código previo aquí...
+```
+
+##### Caso Negativo
+```{r}
+plot_ly(x= ~x2, y = ~y2, z = ~z2, type = "surface")
+```
+
+#### Varianza
+
+```{r}
 
 # Calcula las estadísticas para las muestras generadas
-# Puedes hacerlo tanto para la correlación negativa como para la positiva
-
 # Para la correlación negativa (o positiva, según corresponda)
-X_Negative <- samplesNegative[,1]
-Y_Negative <- samplesNegative[,2]
+## Caso positivo
+X_Positivo <- samples[,1]
+Y_Positivo <- samples[,2]
+Sum_XY_Positivo <- X_Positivo + Y_Positivo
+
+## Caso negativo
+X_Negative <- samples2[,1]
+Y_Negative <- samples2[,2]
 Sum_XY_Negative <- X_Negative + Y_Negative
 
 # Varianza
-var_X_Negative <- var(X_Negative)
-var_Y_Negative <- var(Y_Negative)
+var_X <- 1
+var_Y <- 1/4
+## Caso Positivo
+var_Sum_XY_Positivo <- var(Sum_XY_Positivo)
+## Caso Negativo
 var_Sum_XY_Negative <- var(Sum_XY_Negative)
 
 # Desviación estándar
-sd_X_Negative <- sd(X_Negative)
-sd_Y_Negative <- sd(Y_Negative)
+sd_X <- sqrt(var_X)
+sd_Y <- sqrt(var_Y)
+## Caso Positivo
+sd_Sum_XY_Positivo <- sd(Sum_XY_Positivo)
+## Caso Negativo
 sd_Sum_XY_Negative <- sd(Sum_XY_Negative)
 
 # Cuantil al 95%
-quantile_X_95_Negative <- quantile(X_Negative, 0.95)
-quantile_Y_95_Negative <- quantile(Y_Negative, 0.95)
+quantile_X_95 <- qexp(0.95, rate = params1)
+quantile_Y_95 <- qexp(0.95, rate = params2)
+## Caso positivo
+quantile_Sum_XY_95_Positivo <- quantile(Sum_XY_Positivo, 0.95)
+## Caso Negativo
 quantile_Sum_XY_95_Negative <- quantile(Sum_XY_Negative, 0.95)
 
 # Valor esperado condicional de la cola al 95%
-mean_X_Tail_95_Negative <- mean(X_Negative[X_Negative > quantile_X_95_Negative])
-mean_Y_Tail_95_Negative <- mean(Y_Negative[Y_Negative > quantile_Y_95_Negative])
+## Caso positivo
+#exp_X_Tail_95 <-
+#exp_Y_Tail_95 <- 
+mean_Sum_XY_Tail_95_Positivo <- mean(Sum_XY_Positivo[Sum_XY_Positivo > quantile_Sum_XY_95_Positivo])
+## Caso Negativo
 mean_Sum_XY_Tail_95_Negative <- mean(Sum_XY_Negative[Sum_XY_Negative > quantile_Sum_XY_95_Negative])
 
 # Imprimir los resultados
 cat("Correlación Negativa:\n")
-cat("Varianzas: X =", var_X_Negative, ", Y =", var_Y_Negative, ", X + Y =", var_Sum_XY_Negative, "\n")
-cat("Desviaciones Estándar: X =", sd_X_Negative, ", Y =", sd_Y_Negative, ", X + Y =", sd_Sum_XY_Negative, "\n")
-cat("Cuantiles al 95%: X =", quantile_X_95_Negative, ", Y =", quantile_Y_95_Negative, ", X + Y =", quantile_Sum_XY_95_Negative, "\n")
-cat("Valor esperado condicional de la cola al 95%: X =", mean_X_Tail_95_Negative, ", Y =", mean_Y_Tail_95_Negative, ", X + Y =", mean_Sum_XY_Tail_95_Negative, "\n")
+cat("Varianzas: X =", var_X, ", Y =", var_Y, ", X + Y =", var_Sum_XY_Negative, "\n")
+cat("Desviaciones Estándar: X =", sd_X, ", Y =", sd_Y, ", X + Y =", sd_Sum_XY_Negative, "\n")
+cat("Cuantiles al 95%: X =", quantile_X_95, ", Y =", quantile_Y_95, ", X + Y =", quantile_Sum_XY_95_Negative, "\n")
+cat("Valor esperado condicional de la cola al 95%: X =", 2, ", Y =", 2, ", X + Y =", mean_Sum_XY_Tail_95_Negative, "\n")
 
-# Repite los cálculos para la correlación positiva si es necesario
-
-```
-
-```{r}
-# Suponiendo que ya tienes definidos samplesPositive, y los parámetros params1 y params2
-
-# Variables para la correlación positiva
-X_Positive <- samplesPositive[,1]
-Y_Positive <- samplesPositive[,2]
-Sum_XY_Positive <- X_Positive + Y_Positive
-
-# Varianza
-var_X_Positive <- var(X_Positive)
-var_Y_Positive <- var(Y_Positive)
-var_Sum_XY_Positive <- var(Sum_XY_Positive)
-
-# Desviación estándar
-sd_X_Positive <- sd(X_Positive)
-sd_Y_Positive <- sd(Y_Positive)
-sd_Sum_XY_Positive <- sd(Sum_XY_Positive)
-
-# Cuantil al 95%
-quantile_X_95_Positive <- quantile(X_Positive, 0.95)
-quantile_Y_95_Positive <- quantile(Y_Positive, 0.95)
-quantile_Sum_XY_95_Positive <- quantile(Sum_XY_Positive, 0.95)
-
-# Valor esperado condicional de la cola al 95%
-mean_X_Tail_95_Positive <- mean(X_Positive[X_Positive > quantile_X_95_Positive])
-mean_Y_Tail_95_Positive <- mean(Y_Positive[Y_Positive > quantile_Y_95_Positive])
-mean_Sum_XY_Tail_95_Positive <- mean(Sum_XY_Positive[Sum_XY_Positive > quantile_Sum_XY_95_Positive])
-
-# Imprimir los resultados para la correlación positiva
+# Imprimir los resultados
 cat("Correlación Positiva:\n")
-cat("Varianzas: X =", var_X_Positive, ", Y =", var_Y_Positive, ", X + Y =", var_Sum_XY_Positive, "\n")
-cat("Desviaciones Estándar: X =", sd_X_Positive, ", Y =", sd_Y_Positive, ", X + Y =", sd_Sum_XY_Positive, "\n")
-cat("Cuantiles al 95%: X =", quantile_X_95_Positive, ", Y =", quantile_Y_95_Positive, ", X + Y =", quantile_Sum_XY_95_Positive, "\n")
-cat("Valor esperado condicional de la cola al 95%: X =", mean_X_Tail_95_Positive, ", Y =", mean_Y_Tail_95_Positive, ", X + Y =", mean_Sum_XY_Tail_95_Positive, "\n")
-  
+cat("Varianzas: X =", var_X, ", Y =", var_Y, ", X + Y =", var_Sum_XY_Positivo, "\n")
+cat("Desviaciones Estándar: X =", sd_X, ", Y =", sd_Y, ", X + Y =", sd_Sum_XY_Positivo, "\n")
+cat("Cuantiles al 95%: X =", quantile_X_95, ", Y =", quantile_Y_95, ", X + Y =", quantile_Sum_XY_95_Positivo, "\n")
+cat("Valor esperado condicional de la cola al 95%: X =", 2, ", Y =", 2, ", X + Y =", mean_Sum_XY_Tail_95_Positivo, "\n")
+
 ```
+
 
 ### Cópula Marshall-Olkin
 
-$$C(u,v)=(1-u)(1-v)\textbf{mín}\{(1-u)^{-\alpha_{1}},(1-u)^{-\alpha_{1}}\}$$
+$$\hat{C}(u,v)=(1-u)(1-v)\textbf{mín}\{(1-u)^{-\alpha_{1}},(1-u)^{-\alpha_{1}}\}$$
+
+#### Función de distribución conjunta
+
+Primero notemos que esta sería la distribución conjunta de supervivencia de $X$ y $Y$:
+
+$$S(x, y) = (e^{-\lambda x})(e^{-2\lambda y})\textbf{mín}\{(e^{-\lambda x})^{-\alpha_{1}},(e^{-2\lambda y})^{-\alpha_{1}}\}$$
+
+Ahora mostraremos la distribución conjunta de $X$ y $Y$:
+$$H(x,y)= $$
+
+#### Función de densidad conjunta
+
+```{r, message=FALSE, warning=FALSE}
+
+# Parámetros
+alpha <- c(.001,.001) #negativo
+
+# Cópula de Marshall-Olkin
+copula_mo <- moCopula(param = alpha, dim = 2)
+
+# Función para generar datos
+generate_data <- function(copula, n){
+  u <- rCopula(n, copula)
+  return(data.frame(x = qexp(u[,1], rate = params1), 
+                    y = qexp(u[,2], rate = params2)))
+}
+
+# Generar datos
+set.seed(123)
+data <- generate_data(copula_mo, 10000)
+(cor<- cor(data$x,data$y, method = "kendall"))
+
+# Graficar
+ggplot(data, aes(x = x, y = y)) + 
+  geom_point(alpha = 0.4) + 
+  theme_minimal() +
+  labs(title = "Distribuciones Exponenciales con Dependencia Positiva (Cópula de Marshall-Olkin)",
+       x = "Exponencial con lambda",
+       y = "Exponencial con 2*lambda")
 
 
+```
 
 ### Arquimediana 1
 
