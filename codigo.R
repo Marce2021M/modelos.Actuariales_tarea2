@@ -219,26 +219,27 @@ imprimirResultadosTabla <- function(samples1, samples2) {
   # Crear data frames para los resultados
   resultadosNegativos <- data.frame(
     Metrica = c("Varianzas", "Desviaciones Estándar", "Cuantiles al 95%", "Valor esperado condicional de la cola al 95%"),
-    X = c(var_X, sd_X, quantile_X_95, 2),  # Suponiendo que el valor 2 es un ejemplo
-    Y = c(var_Y, sd_Y, quantile_Y_95, 2),
-    `X + Y` = c(var_Sum_XY_Negative, sd_Sum_XY_Negative, quantile_Sum_XY_95_Negative, mean_Sum_XY_Tail_95_Negative)
+    X = c(var_X, sd_X, quantile_X_95, tvar_95_X),  # Suponiendo que el valor 2 es un ejemplo
+    Y = c(var_Y, sd_Y, quantile_Y_95, tvar_95_Y),
+    `sum(X,Y)` = c(var_Sum_XY_Negative, sd_Sum_XY_Negative, quantile_Sum_XY_95_Negative, mean_Sum_XY_Tail_95_Negative)
   )
 
   resultadosPositivos <- data.frame(
     Metrica = c("Varianzas", "Desviaciones Estándar", "Cuantiles al 95%", "Valor esperado condicional de la cola al 95%"),
-    X = c(var_X, sd_X, quantile_X_95, 2),
-    Y = c(var_Y, sd_Y, quantile_Y_95, 2),
-    `X + Y` = c(var_Sum_XY_Positivo, sd_Sum_XY_Positivo, quantile_Sum_XY_95_Positivo, mean_Sum_XY_Tail_95_Positivo)
+    X = c(var_X, sd_X, quantile_X_95, tvar_95_X),
+    Y = c(var_Y, sd_Y, quantile_Y_95, tvar_95_Y),
+    `sum(X,Y)` = c(var_Sum_XY_Positivo, sd_Sum_XY_Positivo, quantile_Sum_XY_95_Positivo, mean_Sum_XY_Tail_95_Positivo)
   )
 
-  # Imprimir resultados con kable
-  cat("Correlación Negativa:\n")
-  kable(resultadosNegativos, format = "html", caption = "Resultados para la Correlación Negativa") %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
+  #  resultados con kable
+  tabla1 <- resultadosNegativos %>%
+  kable("html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
 
-  cat("\nCorrelación Positiva:\n")
-  kable(resultadosPositivos, format = "html", caption = "Resultados para la Correlación Positiva") %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
+  tabla2 <- resultadosPositivos %>%
+  kable("html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+  return(list(tabla1, tabla2))
 }
 
 # Ejemplo de uso
@@ -292,26 +293,27 @@ imprimirResultadosTabla2 <- function(samples1, samples2) {
   # Crear data frames para los resultados
   resultadosNegativos <- data.frame(
     Metrica = c("Varianzas", "Desviaciones Estándar", "Cuantiles al 95%", "Valor esperado condicional de la cola al 95%"),
-    X = c(var_X, sd_X, quantile_X_95, 2),  # Suponiendo que el valor 2 es un ejemplo
-    Y = c(var_Y, sd_Y, quantile_Y_95, 2),
-    `X + Y` = c(var_Sum_XY_Negative, sd_Sum_XY_Negative, quantile_Sum_XY_95_Negative, mean_Sum_XY_Tail_95_Negative)
+    X = c(var_X, sd_X, quantile_X_95, tvar_95_X),  # Suponiendo que el valor 2 es un ejemplo
+    Y = c(var_Y, sd_Y, quantile_Y_95, tvar_95_Y),
+    `sum(X,Y)` = c(var_Sum_XY_Negative, sd_Sum_XY_Negative, quantile_Sum_XY_95_Negative, mean_Sum_XY_Tail_95_Negative)
   )
 
   resultadosPositivos <- data.frame(
     Metrica = c("Varianzas", "Desviaciones Estándar", "Cuantiles al 95%", "Valor esperado condicional de la cola al 95%"),
-    X = c(var_X, sd_X, quantile_X_95, 2),
-    Y = c(var_Y, sd_Y, quantile_Y_95, 2),
-    `X + Y` = c(var_Sum_XY_Positivo, sd_Sum_XY_Positivo, quantile_Sum_XY_95_Positivo, mean_Sum_XY_Tail_95_Positivo)
+    X = c(var_X, sd_X, quantile_X_95, tvar_95_X),
+    Y = c(var_Y, sd_Y, quantile_Y_95, tvar_95_Y),
+    `sum(X,Y)` = c(var_Sum_XY_Positivo, sd_Sum_XY_Positivo, quantile_Sum_XY_95_Positivo, mean_Sum_XY_Tail_95_Positivo)
   )
 
-  # Imprimir resultados con kable
-  cat("Correlación Negativa:\n")
-  kable(resultadosNegativos, format = "html", caption = "Resultados para la Correlación Negativa") %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
+  # resultados con kable
+  tabla1 <- resultadosNegativos %>%
+  kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
 
-  cat("\nCorrelación Positiva:\n")
-  kable(resultadosPositivos, format = "html", caption = "Resultados para la Correlación Positiva") %>%
-    kable_styling(bootstrap_options = c("striped", "hover"))
+  tabla2 <- resultadosPositivos %>%
+  kable("html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+  return(list(tabla1, tabla2))
 }
 
 # Ejemplo de uso

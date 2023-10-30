@@ -11,6 +11,8 @@ format:
     toc-depth: 3
     page-layout: full
     embed-resources: true
+execute:
+  cache: true
 ---
 
 # Intrucciones
@@ -66,10 +68,10 @@ $$H(x, y) = \Phi_{2}\left(\Phi^{-1}(1 - e^{-\lambda x}), \Phi^{-1}(1 - e^{-2\lam
 
 #### Función de densidad conjunta
 
-```{r, message=FALSE, warning=FALSE}
+```{r,message=FALSE, warning=FALSE}
 library(copula)
 
-rho =.9
+rho =.7
 
 # Definir cópula gaussiana
 myCopulaP1 <- normalCopula(rho, dim = 2)
@@ -81,23 +83,42 @@ grafCopula1 <- graficaDensidadCopulas(myCopulaP1,myCopulaN1)
 
 
 ##### Caso Positivo
-```{r}
 
-grafCopula1[1] 
+```{r graf11}
+grafCopula1[[1]]
 ```
 
 ##### Caso Negativo
+
 ```{r}
-grafCopula1[2]
+grafCopula1[[2]]
 ```
 
 #### Resultados
 
-Para obtener los resultados de las estadísticas pedidas se generó una muestra de 10000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
 
-```{r, eval=FALSE}
+```{r samples1}
+library(kableExtra)
+samples1 <- simulacionSamples(myCopulaP1,myCopulaN1, 1000000)
+
+list_tablas1<-imprimirResultadosTabla(samples1[[1]], samples1[[2]])
+```
 
 
+
+##### Caso Positivo
+
+```{r, cache=FALSE}
+library(kableExtra)
+list_tablas1[[2]]
+```
+
+##### Caso Negativo
+
+```{r, cache=FALSE}
+library(kableExtra)
+list_tablas1[[1]]
 ```
 
 
@@ -114,13 +135,11 @@ $$H(x, y) = \textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(1 - e^{-\lambda x}), \textbf{
 
 #### Función de densidad conjunta
 
-```{r, message=FALSE, warning=FALSE}
+```{r}
 
 # Parámetros de la cópula y las distribuciones marginales
-rho = 0.9
+rho = 0.7
 df = 4 # Grados de libertad para la cópula t de Student
-params1 = 1 # Parámetro para la primera distribución exponencial
-params2 = 1 # Parámetro para la segunda distribución exponencial
 
 # Definir cópulas t de Student
 myCopulaP2 <- tCopula(rho, dim = 2, df = df)
@@ -132,8 +151,7 @@ grafCopula2 <- graficaDensidadCopulas(myCopulaP2,myCopulaN2)
 ##### Caso Positivo
 ```{r}
 # Mostrar los gráficos
-grafCopula2[1]
-
+grafCopula2[[1]]
 ```
 
 
@@ -141,10 +159,35 @@ grafCopula2[1]
 ##### Caso Negativo
 ```{r}
 # Mostrar los gráficos
-grafCopula2[2]
-
+grafCopula2[[2]]
 ```
 
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples2}
+library(kableExtra)
+samples2 <- simulacionSamples(myCopulaP2,myCopulaN2, 1000000)
+
+list_tablas2<-imprimirResultadosTabla(samples2[[1]], samples2[[2]])
+```
+
+
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas2[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas2[[1]]
+```
 
 
 ### Arquimediana Clayton
@@ -174,16 +217,42 @@ grafCopula3 <- graficaDensidadCopulas(myCopulaP3,myCopulaN3)
 ##### Caso Positivo
 
 ```{r}
-grafCopula3[1]
+grafCopula3[[1]]
 ```
 
 
 ##### Caso Negativo
 
 ```{r}
-grafCopula3[2]
+grafCopula3[[2]]
 ```
 
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples3}
+library(kableExtra)
+samples3 <- simulacionSamples(myCopulaP3,myCopulaN3, 1000000)
+
+list_tablas3<-imprimirResultadosTabla(samples3[[1]], samples3[[2]])
+```
+
+
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas3[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas3[[1]]
+```
 
 ### Arquimediana Frank
 
@@ -214,14 +283,41 @@ grafCopula4 <- graficaDensidadCopulas(myCopulaP4,myCopulaN4)
 ##### Caso Positivo
 
 ```{r}
-grafCopula4[1]
+grafCopula4[[1]]
 ```
 
 
 ##### Caso Negativo
 
 ```{r}
-grafCopula4[2]
+grafCopula4[[2]]
+```
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples4}
+library(kableExtra)
+samples4 <- simulacionSamples(myCopulaP4,myCopulaN4, 1000000)
+
+list_tablas4<-imprimirResultadosTabla(samples4[[1]], samples4[[2]])
+```
+
+
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas4[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas4[[1]]
 ```
 
 ### Arquimediana Ali-Mikhail-Haq (AMH)
@@ -253,14 +349,41 @@ grafCopula5 <- graficaDensidadCopulas(myCopulaP5,myCopulaN5)
 ##### Caso Positivo
 
 ```{r}
-grafCopula5[1]
+grafCopula5[[1]]
 ```
 
 
 ##### Caso Negativo
 
 ```{r}
-grafCopula5[2]
+grafCopula5[[2]]
+```
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples5}
+library(kableExtra)
+samples5 <- simulacionSamples(myCopulaP5,myCopulaN5, 1000000)
+
+list_tablas5<-imprimirResultadosTabla(samples5[[1]], samples5[[2]])
+```
+
+
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas5[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas5[[1]]
 ```
 
 ## Caso Pareto
@@ -280,7 +403,7 @@ nu <- 1
 pareto_params1 <- 2*nu 
 pareto_params2 <- nu 
 
-alpha <- 2
+alpha <- 3
 ```
 
 ### Cópula Gaussiana
@@ -306,12 +429,39 @@ pgrafCopula1 <- graficaDensidadCopulas2(myCopulaP1,myCopulaN1)
 ##### Caso Positivo
 ```{r}
 
-pgrafCopula1[1] 
+pgrafCopula1[[1]] 
 ```
 
 ##### Caso Negativo
 ```{r}
-pgrafCopula1[2]
+pgrafCopula1[[2]]
+```
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples6}
+library(kableExtra)
+samples6 <- simulacionSamples2(myCopulaP1,myCopulaN1, 1000000)
+
+list_tablas6<-imprimirResultadosTabla2(samples6[[1]], samples6[[2]])
+```
+
+
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas6[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas6[[1]]
 ```
 
 ### Cópula t-Student
@@ -339,12 +489,39 @@ pgrafCopula2 <- graficaDensidadCopulas2(myCopulaP2,myCopulaN2)
 
 ##### Caso Positivo
 ```{r}
-pgrafCopula2[1] 
+pgrafCopula2[[1]] 
 ```
 
 ##### Caso Negativo
 ```{r}
-pgrafCopula2[2]
+pgrafCopula2[[2]]
+```
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples7}
+library(kableExtra)
+samples7 <- simulacionSamples2(myCopulaP2,myCopulaN2, 1000000)
+
+list_tablas7<-imprimirResultadosTabla2(samples7[[1]], samples7[[2]])
+```
+
+
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas7[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas7[[1]]
 ```
 
 ### Arquimediana clayton
@@ -373,12 +550,39 @@ pgrafCopula3 <- graficaDensidadCopulas2(myCopulaP3,myCopulaN3)
 
 ##### Caso Positivo
 ```{r}
-pgrafCopula3[1] 
+pgrafCopula3[[1]] 
 ```
 
 ##### Caso Negativo
 ```{r}
-pgrafCopula3[2]
+pgrafCopula3[[2]]
+```
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples8}
+library(kableExtra)
+samples8 <- simulacionSamples2(myCopulaP3,myCopulaN3, 1000000)
+
+list_tablas8<-imprimirResultadosTabla2(samples8[[1]], samples8[[2]])
+```
+
+
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas8[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas8[[1]]
 ```
 
 ### Arquimediana Frank
@@ -406,15 +610,40 @@ pgrafCopula4 <- graficaDensidadCopulas2(myCopulaP4,myCopulaN4)
 
 ##### Caso Positivo
 ```{r}
-pgrafCopula4[1] 
+pgrafCopula4[[1]] 
 ```
 
 ##### Caso Negativo
 ```{r}
-pgrafCopula4[2]
+pgrafCopula4[[2]]
+```
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples9}
+library(kableExtra)
+samples9 <- simulacionSamples2(myCopulaP4,myCopulaN4, 1000000)
+
+list_tablas9<-imprimirResultadosTabla2(samples9[[1]], samples9[[2]])
 ```
 
 
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas9[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas9[[1]]
+```
 
 ### Arquimediana Ali-Mikhail-Haq (AMH)
 
@@ -441,13 +670,38 @@ pgrafCopula5 <- graficaDensidadCopulas2(myCopulaP5,myCopulaN5)
 
 ##### Caso Positivo
 ```{r}
-pgrafCopula5[1] 
+pgrafCopula5[[1]] 
 ```
 
 ##### Caso Negativo
 ```{r}
-pgrafCopula5[2]
+pgrafCopula5[[2]]
+```
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+```{r samples10}
+library(kableExtra)
+samples10 <- simulacionSamples2(myCopulaP5,myCopulaN5, 1000000)
+
+list_tablas10<-imprimirResultadosTabla2(samples10[[1]], samples10[[2]])
 ```
 
 
+
+##### Caso Positivo
+
+```{r}
+library(kableExtra)
+list_tablas10[[2]]
+```
+
+##### Caso Negativo
+
+```{r}
+library(kableExtra)
+list_tablas10[[1]]
+```
 
