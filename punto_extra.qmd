@@ -5,6 +5,10 @@ author: "Marcelino"
 date: today
 format:
   html:
+    code-fold: true
+    number-sections: true
+    toc: true
+    toc-depth: 3
     page-layout: full
     embed-resources: true
 ---
@@ -203,7 +207,7 @@ $$H(x, y) = \textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(1 - e^{-\lambda x}), \textbf{
 #### Función de densidad conjunta
 
 ```{r, message=FALSE, warning=FALSE}
-
+source("codigo.R")
 # Parámetros de la cópula y las distribuciones marginales
 rho = 0.9
 df = 4 # Grados de libertad para la cópula t de Student
@@ -214,42 +218,13 @@ params2 = 1 # Parámetro para la segunda distribución exponencial
 myCopulaP <- tCopula(rho, dim = 2, df = df)
 myCopulaN <- tCopula(-rho, dim = 2, df = df)
 
-# Número de muestras
-n <- 10000
-
-# Generar muestras de la cópula
-set.seed(123)
-samples <- rCopula(n, myCopulaP) # Caso positivo
-samples2 <- rCopula(n, myCopulaN) # Caso negativo
-
-# Convertir las muestras a distribuciones exponenciales
-samples[,1] <- qexp(samples[,1], rate = params1)
-samples[,2] <- qexp(samples[,2], rate = params2)
-samples2[,1] <- qexp(samples2[,1], rate = params1)
-samples2[,2] <- qexp(samples2[,2], rate = params2)
-
-# Estimación de la densidad
-dens <- kde(as.matrix(samples)) # Caso positivo
-dens2 <- kde(as.matrix(samples2)) # Caso negativo
-
-# Convertir la estimación de densidad a un formato adecuado
-x <- dens$eval.points[[1]] 
-y <- dens$eval.points[[2]]
-z <- matrix(dens$estimate, nrow = length(x), ncol = length(y))
-
-x2 <- dens2$eval.points[[1]] 
-y2 <- dens2$eval.points[[2]]
-z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
-
-# Crear gráficos interactivos con plotly
-p <- plot_ly(x = ~x, y = ~y, z = ~z) %>% add_surface()
-p2 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
+grafCopula2 <- graficaDensidadCopulas(myCopulaP,myCopulaN)
 ```
 
 ##### Caso Positivo
 ```{r}
 # Mostrar los gráficos
-p
+grafCopula2[1]
 
 ```
 
@@ -258,7 +233,7 @@ p
 ##### Caso Negativo
 ```{r}
 # Mostrar los gráficos
-p2
+grafCopula2[2]
 
 ```
 
