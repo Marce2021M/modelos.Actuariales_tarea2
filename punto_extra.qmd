@@ -42,6 +42,7 @@ donde $F_{x}(x)=1-e^{-\lambda x}$ y $F_{y}(y)=1-e^{-2\lambda y}$
 ```{r, echo=TRUE, message=FALSE, warning=FALSE}
 library(copula)
 library(lattice)
+source("codigo.R")
 
 # Exponential distribution for both marginals
 lambda <- 1
@@ -71,66 +72,28 @@ library(copula)
 rho =.9
 
 # Definir cópula gaussiana
-myCopulaP <- normalCopula(rho, dim = 2)
-myCopulaN <- normalCopula(-rho, dim = 2)
+myCopulaP1 <- normalCopula(rho, dim = 2)
+myCopulaN1 <- normalCopula(-rho, dim = 2)
 
-# Número de muestras
-n <- 10000
+grafCopula1 <- graficaDensidadCopulas(myCopulaP1,myCopulaN1)
 
-# Generar muestras de la cópula
-set.seed(123)
-samples <- rCopula(n, myCopulaP) # caso positivo
-samples2 <- rCopula(n, myCopulaN) # caso negativo
-
-# Convertir las muestras a distribuciones exponenciales
-
-## caso positivo
-samples[,1] <- qexp(samples[,1], rate = params1)
-samples[,2] <- qexp(samples[,2], rate = params2)
-
-## caso negativo
-samples2[,1] <- qexp(samples2[,1], rate = params1)
-samples2[,2] <- qexp(samples2[,2], rate = params2)
-
-
-library(ks)
-
-# Estimación de la densidad
-dens <- kde(as.matrix(samples)) # caso positivo
-dens2 <- kde(as.matrix(samples2)) # caso negativo
-
-library(plotly)
-
-# Convertir la estimación de densidad a un formato adecuado
-
-## caso positivo
-x <- dens$eval.points[[1]] 
-y <- dens$eval.points[[2]]
-z <- matrix(dens$estimate, nrow = length(x), ncol = length(y))
-## caso negativo
-x2 <- dens2$eval.points[[1]] 
-y2 <- dens2$eval.points[[2]]
-z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
 ```
 
 
 ##### Caso Positivo
 ```{r}
 
-# Crear gráfico 3D
-## caso positivo
-plot_ly(x = ~x, y = ~y, z = ~z, type = "surface")
-
+grafCopula1[1] 
 ```
 
 ##### Caso Negativo
 ```{r}
-plot_ly(x= ~x2, y = ~y2, z = ~z2, type = "surface")
+grafCopula1[2]
 ```
 
 #### Varianza
 
-```{r}
+```{r, eval=FALSE}
 
 # Calcula las estadísticas para las muestras generadas
 # Para la correlación negativa (o positiva, según corresponda)
@@ -207,7 +170,7 @@ $$H(x, y) = \textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(1 - e^{-\lambda x}), \textbf{
 #### Función de densidad conjunta
 
 ```{r, message=FALSE, warning=FALSE}
-source("codigo.R")
+
 # Parámetros de la cópula y las distribuciones marginales
 rho = 0.9
 df = 4 # Grados de libertad para la cópula t de Student
@@ -215,10 +178,10 @@ params1 = 1 # Parámetro para la primera distribución exponencial
 params2 = 1 # Parámetro para la segunda distribución exponencial
 
 # Definir cópulas t de Student
-myCopulaP <- tCopula(rho, dim = 2, df = df)
-myCopulaN <- tCopula(-rho, dim = 2, df = df)
+myCopulaP2 <- tCopula(rho, dim = 2, df = df)
+myCopulaN2 <- tCopula(-rho, dim = 2, df = df)
 
-grafCopula2 <- graficaDensidadCopulas(myCopulaP,myCopulaN)
+grafCopula2 <- graficaDensidadCopulas(myCopulaP2,myCopulaN2)
 ```
 
 ##### Caso Positivo
@@ -237,11 +200,7 @@ grafCopula2[2]
 
 ```
 
-### Varianza
 
-```{r}
-
-```
 
 ### Arquimediana Clayton
 
@@ -261,52 +220,23 @@ theta1 = 2 #  dependencia positiva
 theta2 = -.9 #  dependencia negativa
 
 # Definir cópulas de Clayton
-myCopula1 <- claytonCopula(theta1, dim = 2)
-myCopula2 <- claytonCopula(theta2, dim = 2)
+myCopulaP3 <- claytonCopula(theta1, dim = 2)
+myCopulaN3 <- claytonCopula(theta2, dim = 2)
 
-# Número de muestras
-n <- 10000
-
-# Generar muestras de la cópula
-set.seed(123)
-samples1 <- rCopula(n, myCopula1) #  dependencia positiva
-samples2 <- rCopula(n, myCopula2) #  dependencia negativa
-
-# Convertir las muestras a distribuciones exponenciales
-samples1[,1] <- qexp(samples1[,1], rate = params1)
-samples1[,2] <- qexp(samples1[,2], rate = params2)
-samples2[,1] <- qexp(samples2[,1], rate = params1)
-samples2[,2] <- qexp(samples2[,2], rate = params2)
-
-# Estimación de la densidad
-dens1 <- kde(as.matrix(samples1)) #  dependencia positiva
-dens2 <- kde(as.matrix(samples2)) #  dependencia negativa
-
-# Convertir la estimación de densidad a un formato adecuado
-x1 <- dens1$eval.points[[1]] 
-y1 <- dens1$eval.points[[2]]
-z1 <- matrix(dens1$estimate, nrow = length(x1), ncol = length(y1))
-
-x2 <- dens2$eval.points[[1]] 
-y2 <- dens2$eval.points[[2]]
-z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
-
-# Crear gráficos interactivos con plotly
-p1 <- plot_ly(x = ~x1, y = ~y1, z = ~z1) %>% add_surface()
-p2 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
+grafCopula3 <- graficaDensidadCopulas(myCopulaP3,myCopulaN3)
 ```
 
 ##### Caso Positivo
 
 ```{r}
-p1
+grafCopula3[1]
 ```
 
 
 ##### Caso Negativo
 
 ```{r}
-p2
+grafCopula3[2]
 ```
 
 
@@ -329,52 +259,24 @@ theta1 = 10 #  dependencia positiva
 theta2 = -15 #  dependencia negativa
 
 # Definir cópulas de Clayton
-myCopula1 <- frankCopula(theta1, dim = 2)
-myCopula2 <- frankCopula(theta2, dim = 2)
+myCopulaP4 <- frankCopula(theta1, dim = 2)
+myCopulaN4 <- frankCopula(theta2, dim = 2)
 
-# Número de muestras
-n <- 10000
+grafCopula4 <- graficaDensidadCopulas(myCopulaP4,myCopulaN4)
 
-# Generar muestras de la cópula
-set.seed(123)
-samples1 <- rCopula(n, myCopula1) #  dependencia positiva
-samples2 <- rCopula(n, myCopula2) #  dependencia negativa
-
-# Convertir las muestras a distribuciones exponenciales
-samples1[,1] <- qexp(samples1[,1], rate = params1)
-samples1[,2] <- qexp(samples1[,2], rate = params2)
-samples2[,1] <- qexp(samples2[,1], rate = params1)
-samples2[,2] <- qexp(samples2[,2], rate = params2)
-
-# Estimación de la densidad
-dens1 <- kde(as.matrix(samples1)) #  dependencia positiva
-dens2 <- kde(as.matrix(samples2)) #  dependencia negativa
-
-# Convertir la estimación de densidad a un formato adecuado
-x1 <- dens1$eval.points[[1]] 
-y1 <- dens1$eval.points[[2]]
-z1 <- matrix(dens1$estimate, nrow = length(x1), ncol = length(y1))
-
-x2 <- dens2$eval.points[[1]] 
-y2 <- dens2$eval.points[[2]]
-z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
-
-# Crear gráficos interactivos con plotly
-p1 <- plot_ly(x = ~x1, y = ~y1, z = ~z1) %>% add_surface()
-p2 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
 ```
 
 ##### Caso Positivo
 
 ```{r}
-p1
+grafCopula4[1]
 ```
 
 
 ##### Caso Negativo
 
 ```{r}
-p2
+grafCopula4[2]
 ```
 
 ### Arquimediana Ali-Mikhail-Haq (AMH)
@@ -396,52 +298,24 @@ theta1 = 1 #  dependencia positiva
 theta2 = -1 #  dependencia negativa
 
 # Definir cópulas de Clayton
-myCopula1 <- amhCopula(theta1, dim = 2)
-myCopula2 <- amhCopula(theta2, dim = 2)
+myCopulaP5 <- amhCopula(theta1, dim = 2)
+myCopulaN5 <- amhCopula(theta2, dim = 2)
 
-# Número de muestras
-n <- 10000
+grafCopula5 <- graficaDensidadCopulas(myCopulaP5,myCopulaN5)
 
-# Generar muestras de la cópula
-set.seed(123)
-samples1 <-  rCopula(n, myCopula1) #  dependencia positiva
-samples2 <-  rCopula(n, myCopula2) #  dependencia negativa
-
-# Convertir las muestras a distribuciones exponenciales
-samples1[,1] <- qexp(samples1[,1], rate = params1)
-samples1[,2] <- qexp(samples1[,2], rate = params2)
-samples2[,1] <- qexp(samples2[,1], rate = params1)
-samples2[,2] <- qexp(samples2[,2], rate = params2)
-
-# Estimación de la densidad
-dens1 <- kde(as.matrix(samples1)) #  dependencia positiva
-dens2 <- kde(as.matrix(samples2)) #  dependencia negativa
-
-# Convertir la estimación de densidad a un formato adecuado
-x1 <- dens1$eval.points[[1]] 
-y1 <- dens1$eval.points[[2]]
-z1 <- matrix(dens1$estimate, nrow = length(x1), ncol = length(y1))
-
-x2 <- dens2$eval.points[[1]] 
-y2 <- dens2$eval.points[[2]]
-z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
-
-# Crear gráficos interactivos con plotly
-p1 <- plot_ly(x = ~x1, y = ~y1, z = ~z1) %>% add_surface()
-p2 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
 ```
 
 ##### Caso Positivo
 
 ```{r}
-p1
+grafCopula5[1]
 ```
 
 
 ##### Caso Negativo
 
 ```{r}
-p2
+grafCopula5[2]
 ```
 
 ## Caso Pareto
@@ -454,34 +328,181 @@ $$Y\sim \textbf{Pareto}(\alpha, \nu)$$
 
 donde $F_{x}(x)=1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}$ y $F_{y}(y)=1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}$
 
+```{r}
+library(actuar)
+# Params of a pareto
+nu <- 1
+pareto_params1 <- 2*nu 
+pareto_params2 <- nu 
+
+alpha <- 2
+```
+
 ### Cópula Gaussiana
 
 $$C(u,v)=\Phi_{2}(\Phi^{-1}(u),\Phi^{-1}(v))$$
 
-### Cópula Marshall-Olkin
+#### Función de distribución conjunta
 
-$$C(u,v)=(1-u)(1-v)\textbf{mín}\{(1-u)^{-\alpha_{1}},(1-u)^{-\alpha_{1}}\}$$
+$$H(x, y) = \Phi_{2}\left(\Phi^{-1}\left(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\right), \Phi^{-1}\left(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}\right); \rho \right)$$
 
-### Arquimediana 1
+#### Función de densidad conjunta
+
+```{r}
+rho =.9
+
+# Definir cópula gaussiana
+myCopulaP1 <- normalCopula(rho, dim = 2)
+myCopulaN1 <- normalCopula(-rho, dim = 2)
+
+pgrafCopula1 <- graficaDensidadCopulas2(myCopulaP1,myCopulaN1)
+```
+
+##### Caso Positivo
+```{r}
+
+pgrafCopula1[1] 
+```
+
+##### Caso Negativo
+```{r}
+pgrafCopula1[2]
+```
+
+### Cópula t-Student
+
+$$C(u,v)=\textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(u),\textbf{t}_{\nu}^{-1}(v); \rho)$$
+
+donde $\textbf{t}_{\nu}(;\rho)$ es la función de distribución conjunta de una distribución t-Student bivariada estandarizada y con correlación $\rho$ (esta determinará la relación negativa o positiva de las variables); y $\textbf{t}_{\nu}$ es la función de distribución de una distribución univaria t-Student.
+
+#### Función de distribución conjunta
+
+$$H(x, y) = \textbf{t}_{\nu}\left(\textbf{t}_{\nu}^{-1}(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}), \textbf{t}_{\nu}^{-1}(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}); \rho \right)$$
+
+#### Función de densidad conjunta
+
+```{r}
+# Parámetros de la cópula y las distribuciones marginales
+rho = 0.9
+df = 4 
+# Definir cópulas t de Student
+myCopulaP2 <- tCopula(rho, dim = 2, df = df)
+myCopulaN2 <- tCopula(-rho, dim = 2, df = df)
+
+pgrafCopula2 <- graficaDensidadCopulas2(myCopulaP2,myCopulaN2)
+```
+
+##### Caso Positivo
+```{r}
+pgrafCopula2[1] 
+```
+
+##### Caso Negativo
+```{r}
+pgrafCopula2[2]
+```
+
+### Arquimediana clayton
 
 $$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
 
-donde $\phi(u)=(-\ln u)^{\theta}$
+donde $\phi(u)=\frac{1}{\theta}\left(t^{-\theta}-1\right)$
 
+#### Función de distribución conjunta
 
-### Arquimediana 2
+$$H(x, y) = \max \left\{\left( \left(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\right)^{-\theta} + \left(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}\right)^{-\theta} - 1\right)^{-1/\theta}, 0 \right\}$$
+
+#### Función de densidad conjunta
+
+```{r}
+# Definir parámetros de la cópula de Clayton
+theta1 = 2 #  dependencia positiva
+theta2 = -.9 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP3 <- claytonCopula(theta1, dim = 2)
+myCopulaN3 <- claytonCopula(theta2, dim = 2)
+
+pgrafCopula3 <- graficaDensidadCopulas2(myCopulaP3,myCopulaN3)
+```
+
+##### Caso Positivo
+```{r}
+pgrafCopula3[1] 
+```
+
+##### Caso Negativo
+```{r}
+pgrafCopula3[2]
+```
+
+### Arquimediana Frank
 
 $$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
 
-donde $\phi(u)=\ln(1-\theta\ln(u))$
+donde $\phi(u)=-\ln\frac{e^{-\theta u}-1}{e^{-\theta }-1}$
 
-### Arquimediana 3
+#### Función de distribución conjunta
+
+$$H(x, y) = -\frac{1}{\theta} \ln \left( 1 + \frac{\left(e^{-\theta \left(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\right)} - 1\right)\left(e^{-\theta \left(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}\right)} - 1\right)}{e^{-\theta} - 1} \right)$$
+
+#### Función de densidad conjunta
+
+```{r}
+theta1 = 10 #  dependencia positiva
+theta2 = -15 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP4 <- frankCopula(theta1, dim = 2)
+myCopulaN4 <- frankCopula(theta2, dim = 2)
+
+pgrafCopula4 <- graficaDensidadCopulas2(myCopulaP4,myCopulaN4)
+```
+
+##### Caso Positivo
+```{r}
+pgrafCopula4[1] 
+```
+
+##### Caso Negativo
+```{r}
+pgrafCopula4[2]
+```
+
+
+
+### Arquimediana Ali-Mikhail-Haq (AMH)
 
 $$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
 
-donde $\phi(u)=(1-\ln(u))^{\theta}-1$
+donde $\phi(u)=\ln\frac{1-\theta(1-u)}{u}$
 
+#### Función de distribución conjunta
 
+$$H(x, y) =\frac{\left(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\right)\left(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}\right)}{1 - \theta \left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\left(\frac{\nu}{y+\nu}\right)^{\alpha}} $$
+
+#### Función de densidad conjunta
+
+```{r}
+theta1 = 1 #  dependencia positiva
+theta2 = -1 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP5 <- amhCopula(theta1, dim = 2)
+myCopulaN5 <- amhCopula(theta2, dim = 2)
+
+pgrafCopula5 <- graficaDensidadCopulas2(myCopulaP5,myCopulaN5)
+```
+
+##### Caso Positivo
+```{r}
+pgrafCopula5[1] 
+```
+
+##### Caso Negativo
+```{r}
+pgrafCopula5[2]
+```
 
 
 
