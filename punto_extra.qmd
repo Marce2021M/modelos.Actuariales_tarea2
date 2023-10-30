@@ -11,6 +11,11 @@ format:
     toc-depth: 3
     page-layout: full
     embed-resources: true
+  pdf: 
+    toc: true
+    toc-depth: 3
+    page-layout: full
+    embed-resources: true
 execute:
   cache: true
 ---
@@ -41,9 +46,10 @@ $$Y\sim \textbf{Exp}(2\lambda)$$
 
 donde $F_{x}(x)=1-e^{-\lambda x}$ y $F_{y}(y)=1-e^{-2\lambda y}$
 
-```{r, echo=TRUE, message=FALSE, warning=FALSE}
+```{r, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
 library(copula)
 library(lattice)
+library(plotly)
 source("codigo.R")
 
 # Exponential distribution for both marginals
@@ -68,30 +74,74 @@ $$H(x, y) = \Phi_{2}\left(\Phi^{-1}(1 - e^{-\lambda x}), \Phi^{-1}(1 - e^{-2\lam
 
 #### Función de densidad conjunta
 
-```{r,message=FALSE, warning=FALSE}
+```{r,message=FALSE, warning=FALSE, cache=FALSE}
 library(copula)
 
-rho =.7
+rho =.9
 
 # Definir cópula gaussiana
 myCopulaP1 <- normalCopula(rho, dim = 2)
 myCopulaN1 <- normalCopula(-rho, dim = 2)
 
-grafCopula1 <- graficaDensidadCopulas(myCopulaP1,myCopulaN1)
+# Generar muestras de la cópula
+seed <-191654
+n=10000
+set.seed(seed)
+samples <- rCopula(n, myCopulaP1) # caso positivo
+samples2 <- rCopula(n, myCopulaN1) # caso negativo
+
+# Convertir las muestras a distribuciones exponenciales
+
+## caso positivo
+samples[,1] <- qexp(samples[,1], rate = params1)
+samples[,2] <- qexp(samples[,2], rate = params2)
+
+## caso negativo
+samples2[,1] <- qexp(samples2[,1], rate = params1)
+samples2[,2] <- qexp(samples2[,2], rate = params2)
+
+
+library(ks)
+
+# Estimación de la densidad
+dens <- kde(as.matrix(samples)) # caso positivo
+dens2 <- kde(as.matrix(samples2)) # caso negativo
+
+library(plotly)
+
+# Convertir la estimación de densidad a un formato adecuado
+
+## caso positivo
+x <- dens$eval.points[[1]] 
+y <- dens$eval.points[[2]]
+z <- matrix(dens$estimate, nrow = length(x), ncol = length(y))
+## caso negativo
+x2 <- dens2$eval.points[[1]] 
+y2 <- dens2$eval.points[[2]]
+z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
+
 
 ```
 
 
 ##### Caso Positivo
 
-```{r graf11}
-grafCopula1[[1]]
+```{r}
+## caso positivo
+persp(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "X", ylab = "Y", zlab = "Z")
 ```
 
 ##### Caso Negativo
 
 ```{r}
-grafCopula1[[2]]
+persp(x2, y2, z2, theta = 30, phi = 30, expand = 0.5, col = "salmon",
+      xlab = "X", ylab = "Y", zlab = "Z")
+```
+
+#### 2D
+```{r}
+graficaDependenciaCopulas2D(myCopulaP1, myCopulaN1)
 ```
 
 #### Resultados
@@ -135,31 +185,75 @@ $$H(x, y) = \textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(1 - e^{-\lambda x}), \textbf{
 
 #### Función de densidad conjunta
 
-```{r}
+```{r, cache=FALSE}
 
 # Parámetros de la cópula y las distribuciones marginales
-rho = 0.7
+rho = 0.9
 df = 4 # Grados de libertad para la cópula t de Student
 
 # Definir cópulas t de Student
 myCopulaP2 <- tCopula(rho, dim = 2, df = df)
 myCopulaN2 <- tCopula(-rho, dim = 2, df = df)
 
-grafCopula2 <- graficaDensidadCopulas(myCopulaP2,myCopulaN2)
+# Generar muestras de la cópula
+set.seed(seed)
+samples <- rCopula(n, myCopulaP2) # caso positivo
+samples2 <- rCopula(n, myCopulaN2) # caso negativo
+
+# Convertir las muestras a distribuciones exponenciales
+
+## caso positivo
+samples[,1] <- qexp(samples[,1], rate = params1)
+samples[,2] <- qexp(samples[,2], rate = params2)
+
+## caso negativo
+samples2[,1] <- qexp(samples2[,1], rate = params1)
+samples2[,2] <- qexp(samples2[,2], rate = params2)
+
+
+library(ks)
+
+# Estimación de la densidad
+dens <- kde(as.matrix(samples)) # caso positivo
+dens2 <- kde(as.matrix(samples2)) # caso negativo
+
+library(plotly)
+
+# Convertir la estimación de densidad a un formato adecuado
+
+## caso positivo
+x <- dens$eval.points[[1]] 
+y <- dens$eval.points[[2]]
+z <- matrix(dens$estimate, nrow = length(x), ncol = length(y))
+## caso negativo
+x2 <- dens2$eval.points[[1]] 
+y2 <- dens2$eval.points[[2]]
+z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
+
+
+# Crear gráficos interactivos con plotly
+p3 <- plot_ly(x = ~x, y = ~y, z = ~z) %>% add_surface()
+p4 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
 ```
 
 ##### Caso Positivo
+
 ```{r}
-# Mostrar los gráficos
-grafCopula2[[1]]
+## caso positivo
+persp(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "X", ylab = "Y", zlab = "Z")
 ```
 
-
-
 ##### Caso Negativo
+
 ```{r}
-# Mostrar los gráficos
-grafCopula2[[2]]
+persp(x2, y2, z2, theta = 30, phi = 30, expand = 0.5, col = "salmon",
+      xlab = "X", ylab = "Y", zlab = "Z")
+```
+
+#### 2D
+```{r}
+graficaDependenciaCopulas2D(myCopulaP2, myCopulaN2)
 ```
 
 #### Resultados
@@ -225,6 +319,11 @@ grafCopula3[[1]]
 
 ```{r}
 grafCopula3[[2]]
+```
+
+#### 2D
+```{r}
+graficaDependenciaCopulas2D(myCopulaP3, myCopulaN3)
 ```
 
 #### Resultados
@@ -293,6 +392,11 @@ grafCopula4[[1]]
 grafCopula4[[2]]
 ```
 
+#### 2D
+```{r}
+graficaDependenciaCopulas2D(myCopulaP4, myCopulaN4)
+```
+
 #### Resultados
 
 Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
@@ -357,6 +461,11 @@ grafCopula5[[1]]
 
 ```{r}
 grafCopula5[[2]]
+```
+
+#### 2D
+```{r}
+graficaDependenciaCopulas2D(myCopulaP5, myCopulaN5)
 ```
 
 #### Resultados
@@ -437,6 +546,11 @@ pgrafCopula1[[1]]
 pgrafCopula1[[2]]
 ```
 
+#### 2D
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP1, myCopulaN1)
+```
+
 #### Resultados
 
 Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
@@ -495,6 +609,11 @@ pgrafCopula2[[1]]
 ##### Caso Negativo
 ```{r}
 pgrafCopula2[[2]]
+```
+
+#### 2D
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP2, myCopulaN2)
 ```
 
 #### Resultados
@@ -558,6 +677,11 @@ pgrafCopula3[[1]]
 pgrafCopula3[[2]]
 ```
 
+#### 2D
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP3, myCopulaN3)
+```
+
 #### Resultados
 
 Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
@@ -618,6 +742,11 @@ pgrafCopula4[[1]]
 pgrafCopula4[[2]]
 ```
 
+#### 2D
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP4, myCopulaN4)
+```
+
 #### Resultados
 
 Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
@@ -676,6 +805,11 @@ pgrafCopula5[[1]]
 ##### Caso Negativo
 ```{r}
 pgrafCopula5[[2]]
+```
+
+#### 2D
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP5, myCopulaN5)
 ```
 
 #### Resultados

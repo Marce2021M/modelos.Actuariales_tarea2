@@ -1,0 +1,985 @@
+---
+title: "Modelos - Punto Extra"
+lang: es
+author: "Marcelino"
+date: today
+format:
+  html:
+    code-fold: true
+    number-sections: true
+    toc: true
+    toc-depth: 3
+    page-layout: full
+    embed-resources: true
+  pdf: 
+    toc: true
+    toc-depth: 3
+    page-layout: full
+    embed-resources: true
+execute:
+  cache: true
+---
+
+
+# Intrucciones
+
+Considera dos variables $X$ y $Y$ con distribución exponencial donde una tiene valor esperado que sea el doble del valor esperado de la otra (tú decides el parámetro).
+
+1.  Escoge al menos 5 tipos de cópulas para modelar la dependencia entre ellas, para cada cópula escoge parámetros que reflejen una dependencia negativa y una dependencia positiva (en total tendrás 10 modelos). Para cada uno de los 10 modelos:
+    a.  Muestra la función de distribución conjunta de $X$ y $Y$ (la fórmula).
+    b.  Grafica la función de densidad conjunta de $X$ y $Y$.
+    c.  Varianza de $X$, $Y$ y $X + Y$.
+    d.  Desviación estándar de $X$, $Y$ y $X + Y$.
+    e.  Cuantil al 95% de $X$, $Y$ y $X + Y$.
+    f.  Valor esperado condicional de la cola al 95% de $X$, $Y$ y $X + Y$.
+
+2.  Repite el inciso anterior; pero ahora considera que $X$ y $Y$ tienen distribución pareto donde una tiene valor esperado que sea el doble del valor esperado de la otra (tú decides los parámetros).
+
+# Solución
+
+## Caso Exponencial
+
+Tenemos las siguientes variables aleatorias:
+
+$$X\sim \textbf{Exp}(\lambda)$$
+
+$$Y\sim \textbf{Exp}(2\lambda)$$
+
+donde $F_{x}(x)=1-e^{-\lambda x}$ y $F_{y}(y)=1-e^{-2\lambda y}$
+
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+library(copula)
+library(lattice)
+library(plotly)
+source("codigo.R")
+
+# Exponential distribution for both marginals
+lambda <- 1
+# Parameters for the marginals
+# You can adjust these parameters as needed
+params1 <- lambda # Rate for the first exponential distribution
+params2 <- 2*lambda # Rate for the second exponential distribution
+
+```
+
+
+### Cópula Gaussiana
+
+$$C(u,v)=\Phi_{2}(\Phi^{-1}(u),\Phi^{-1}(v), \rho)$$
+
+donde $\Phi_{2}$ es la función de distribución conjunta de una distribución normal bivariada con media cero y varianza uno y correlación $\rho$ (esta determinará la relación negativa o positiva de las variables); y $\Phi$ es la función de distribución de una distribución normal estándar.
+
+
+#### Función de distribución conjunta
+
+$$H(x, y) = \Phi_{2}\left(\Phi^{-1}(1 - e^{-\lambda x}), \Phi^{-1}(1 - e^{-2\lambda y}); \rho \right)$$
+
+#### Función de densidad conjunta
+
+
+```{r,message=FALSE, warning=FALSE, cache=FALSE}
+library(copula)
+
+rho =.9
+
+# Definir cópula gaussiana
+myCopulaP1 <- normalCopula(rho, dim = 2)
+myCopulaN1 <- normalCopula(-rho, dim = 2)
+
+# Generar muestras de la cópula
+seed <-191654
+n=10000
+set.seed(seed)
+samples <- rCopula(n, myCopulaP1) # caso positivo
+samples2 <- rCopula(n, myCopulaN1) # caso negativo
+
+# Convertir las muestras a distribuciones exponenciales
+
+## caso positivo
+samples[,1] <- qexp(samples[,1], rate = params1)
+samples[,2] <- qexp(samples[,2], rate = params2)
+
+## caso negativo
+samples2[,1] <- qexp(samples2[,1], rate = params1)
+samples2[,2] <- qexp(samples2[,2], rate = params2)
+
+
+library(ks)
+
+# Estimación de la densidad
+dens <- kde(as.matrix(samples)) # caso positivo
+dens2 <- kde(as.matrix(samples2)) # caso negativo
+
+library(plotly)
+
+# Convertir la estimación de densidad a un formato adecuado
+
+## caso positivo
+x <- dens$eval.points[[1]] 
+y <- dens$eval.points[[2]]
+z <- matrix(dens$estimate, nrow = length(x), ncol = length(y))
+## caso negativo
+x2 <- dens2$eval.points[[1]] 
+y2 <- dens2$eval.points[[2]]
+z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
+
+
+```
+
+
+
+##### Caso Positivo
+
+
+```{r}
+## caso positivo
+persp(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "X", ylab = "Y", zlab = "Z")
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+persp(x2, y2, z2, theta = 30, phi = 30, expand = 0.5, col = "salmon",
+      xlab = "X", ylab = "Y", zlab = "Z")
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D(myCopulaP1, myCopulaN1)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples1}
+library(kableExtra)
+samples1 <- simulacionSamples(myCopulaP1,myCopulaN1, 1000000)
+
+list_tablas1<-imprimirResultadosTabla(samples1[[1]], samples1[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r, cache=FALSE}
+library(kableExtra)
+list_tablas1[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r, cache=FALSE}
+library(kableExtra)
+list_tablas1[[1]]
+```
+
+
+
+### Cópula t-Student
+
+$$C(u,v)=\textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(u),\textbf{t}_{\nu}^{-1}(v); \rho)$$
+
+donde $\textbf{t}_{\nu}(;\rho)$ es la función de distribución conjunta de una distribución t-Student bivariada estandarizada y con correlación $\rho$ (esta determinará la relación negativa o positiva de las variables); y $\textbf{t}_{\nu}$ es la función de distribución de una distribución univaria t-Student.
+
+#### Función de distribución conjunta
+
+$$H(x, y) = \textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(1 - e^{-\lambda x}), \textbf{t}_{\nu}^{-1}(1 - e^{-2\lambda y}); \rho)$$
+
+
+#### Función de densidad conjunta
+
+
+```{r, cache=FALSE}
+
+# Parámetros de la cópula y las distribuciones marginales
+rho = 0.9
+df = 4 # Grados de libertad para la cópula t de Student
+
+# Definir cópulas t de Student
+myCopulaP2 <- tCopula(rho, dim = 2, df = df)
+myCopulaN2 <- tCopula(-rho, dim = 2, df = df)
+
+# Generar muestras de la cópula
+set.seed(seed)
+samples <- rCopula(n, myCopulaP2) # caso positivo
+samples2 <- rCopula(n, myCopulaN2) # caso negativo
+
+# Convertir las muestras a distribuciones exponenciales
+
+## caso positivo
+samples[,1] <- qexp(samples[,1], rate = params1)
+samples[,2] <- qexp(samples[,2], rate = params2)
+
+## caso negativo
+samples2[,1] <- qexp(samples2[,1], rate = params1)
+samples2[,2] <- qexp(samples2[,2], rate = params2)
+
+
+library(ks)
+
+# Estimación de la densidad
+dens <- kde(as.matrix(samples)) # caso positivo
+dens2 <- kde(as.matrix(samples2)) # caso negativo
+
+library(plotly)
+
+# Convertir la estimación de densidad a un formato adecuado
+
+## caso positivo
+x <- dens$eval.points[[1]] 
+y <- dens$eval.points[[2]]
+z <- matrix(dens$estimate, nrow = length(x), ncol = length(y))
+## caso negativo
+x2 <- dens2$eval.points[[1]] 
+y2 <- dens2$eval.points[[2]]
+z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
+
+
+# Crear gráficos interactivos con plotly
+p3 <- plot_ly(x = ~x, y = ~y, z = ~z) %>% add_surface()
+p4 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
+```
+
+
+##### Caso Positivo
+
+
+```{r}
+## caso positivo
+persp(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+      xlab = "X", ylab = "Y", zlab = "Z")
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+persp(x2, y2, z2, theta = 30, phi = 30, expand = 0.5, col = "salmon",
+      xlab = "X", ylab = "Y", zlab = "Z")
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D(myCopulaP2, myCopulaN2)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples2}
+library(kableExtra)
+samples2 <- simulacionSamples(myCopulaP2,myCopulaN2, 1000000)
+
+list_tablas2<-imprimirResultadosTabla(samples2[[1]], samples2[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas2[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas2[[1]]
+```
+
+
+
+### Arquimediana Clayton
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=\frac{1}{\theta}\left(t^{-\theta}-1\right)$
+
+#### Función de distribución conjunta
+
+$$H(x, y) = \max \left\{ \left((1 - e^{-\lambda x})^{-\theta} + (1 - e^{-2\lambda y})^{-\theta} - 1\right)^{-1/\theta}, 0 \right\}$$
+
+#### Función de densidad conjunta
+
+
+```{r}
+# Definir parámetros de la cópula de Clayton
+theta1 = 2 #  dependencia positiva
+theta2 = -.9 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP3 <- claytonCopula(theta1, dim = 2)
+myCopulaN3 <- claytonCopula(theta2, dim = 2)
+
+grafCopula3 <- graficaDensidadCopulas(myCopulaP3,myCopulaN3)
+```
+
+
+##### Caso Positivo
+
+
+```{r}
+grafCopula3[[1]]
+```
+
+
+
+##### Caso Negativo
+
+
+```{r}
+grafCopula3[[2]]
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D(myCopulaP3, myCopulaN3)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples3}
+library(kableExtra)
+samples3 <- simulacionSamples(myCopulaP3,myCopulaN3, 1000000)
+
+list_tablas3<-imprimirResultadosTabla(samples3[[1]], samples3[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas3[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas3[[1]]
+```
+
+
+### Arquimediana Frank
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=-\ln\frac{e^{-\theta u}-1}{e^{-\theta }-1}$
+
+#### Función de distribución conjunta
+
+
+$$H(x, y) = -\frac{1}{\theta} \ln \left( 1 + \frac{(e^{-\theta (1 - e^{-\lambda x})} - 1)(e^{-\theta (1 - e^{-2\lambda y})} - 1)}{e^{-\theta} - 1} \right)$$
+
+#### Función de densidad conjunta
+
+
+```{r}
+
+theta1 = 10 #  dependencia positiva
+theta2 = -15 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP4 <- frankCopula(theta1, dim = 2)
+myCopulaN4 <- frankCopula(theta2, dim = 2)
+
+grafCopula4 <- graficaDensidadCopulas(myCopulaP4,myCopulaN4)
+
+```
+
+
+##### Caso Positivo
+
+
+```{r}
+grafCopula4[[1]]
+```
+
+
+
+##### Caso Negativo
+
+
+```{r}
+grafCopula4[[2]]
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D(myCopulaP4, myCopulaN4)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples4}
+library(kableExtra)
+samples4 <- simulacionSamples(myCopulaP4,myCopulaN4, 1000000)
+
+list_tablas4<-imprimirResultadosTabla(samples4[[1]], samples4[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas4[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas4[[1]]
+```
+
+
+### Arquimediana Ali-Mikhail-Haq (AMH)
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=\ln\frac{1-\theta(1-u)}{u}$
+
+#### Función de distribución conjunta
+
+$$H(x, y) =\frac{(1 - e^{-\lambda x})(1 - e^{-2\lambda y})}{1 - \theta (e^{-\lambda x})((e^{-2\lambda y}))} $$
+
+
+#### Función de densidad conjunta
+
+
+```{r}
+
+theta1 = 1 #  dependencia positiva
+theta2 = -1 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP5 <- amhCopula(theta1, dim = 2)
+myCopulaN5 <- amhCopula(theta2, dim = 2)
+
+grafCopula5 <- graficaDensidadCopulas(myCopulaP5,myCopulaN5)
+
+```
+
+
+##### Caso Positivo
+
+
+```{r}
+grafCopula5[[1]]
+```
+
+
+
+##### Caso Negativo
+
+
+```{r}
+grafCopula5[[2]]
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D(myCopulaP5, myCopulaN5)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples5}
+library(kableExtra)
+samples5 <- simulacionSamples(myCopulaP5,myCopulaN5, 1000000)
+
+list_tablas5<-imprimirResultadosTabla(samples5[[1]], samples5[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas5[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas5[[1]]
+```
+
+
+## Caso Pareto
+
+Tenemos las siguientes variables aleatorias:
+
+$$X\sim \textbf{Pareto}(\alpha, 2\nu)$$
+
+$$Y\sim \textbf{Pareto}(\alpha, \nu)$$
+
+donde $F_{x}(x)=1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}$ y $F_{y}(y)=1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}$
+
+
+```{r}
+library(actuar)
+# Params of a pareto
+nu <- 1
+pareto_params1 <- 2*nu 
+pareto_params2 <- nu 
+
+alpha <- 3
+```
+
+
+### Cópula Gaussiana
+
+$$C(u,v)=\Phi_{2}(\Phi^{-1}(u),\Phi^{-1}(v))$$
+
+#### Función de distribución conjunta
+
+$$H(x, y) = \Phi_{2}\left(\Phi^{-1}\left(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\right), \Phi^{-1}\left(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}\right); \rho \right)$$
+
+#### Función de densidad conjunta
+
+
+```{r}
+rho =.9
+
+# Definir cópula gaussiana
+myCopulaP1 <- normalCopula(rho, dim = 2)
+myCopulaN1 <- normalCopula(-rho, dim = 2)
+
+pgrafCopula1 <- graficaDensidadCopulas2(myCopulaP1,myCopulaN1)
+```
+
+
+##### Caso Positivo
+
+```{r}
+
+pgrafCopula1[[1]] 
+```
+
+
+##### Caso Negativo
+
+```{r}
+pgrafCopula1[[2]]
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP1, myCopulaN1)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples6}
+library(kableExtra)
+samples6 <- simulacionSamples2(myCopulaP1,myCopulaN1, 1000000)
+
+list_tablas6<-imprimirResultadosTabla2(samples6[[1]], samples6[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas6[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas6[[1]]
+```
+
+
+### Cópula t-Student
+
+$$C(u,v)=\textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(u),\textbf{t}_{\nu}^{-1}(v); \rho)$$
+
+donde $\textbf{t}_{\nu}(;\rho)$ es la función de distribución conjunta de una distribución t-Student bivariada estandarizada y con correlación $\rho$ (esta determinará la relación negativa o positiva de las variables); y $\textbf{t}_{\nu}$ es la función de distribución de una distribución univaria t-Student.
+
+#### Función de distribución conjunta
+
+$$H(x, y) = \textbf{t}_{\nu}\left(\textbf{t}_{\nu}^{-1}(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}), \textbf{t}_{\nu}^{-1}(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}); \rho \right)$$
+
+#### Función de densidad conjunta
+
+
+```{r}
+# Parámetros de la cópula y las distribuciones marginales
+rho = 0.9
+df = 4 
+# Definir cópulas t de Student
+myCopulaP2 <- tCopula(rho, dim = 2, df = df)
+myCopulaN2 <- tCopula(-rho, dim = 2, df = df)
+
+pgrafCopula2 <- graficaDensidadCopulas2(myCopulaP2,myCopulaN2)
+```
+
+
+##### Caso Positivo
+
+```{r}
+pgrafCopula2[[1]] 
+```
+
+
+##### Caso Negativo
+
+```{r}
+pgrafCopula2[[2]]
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP2, myCopulaN2)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples7}
+library(kableExtra)
+samples7 <- simulacionSamples2(myCopulaP2,myCopulaN2, 1000000)
+
+list_tablas7<-imprimirResultadosTabla2(samples7[[1]], samples7[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas7[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas7[[1]]
+```
+
+
+### Arquimediana clayton
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=\frac{1}{\theta}\left(t^{-\theta}-1\right)$
+
+#### Función de distribución conjunta
+
+$$H(x, y) = \max \left\{\left( \left(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\right)^{-\theta} + \left(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}\right)^{-\theta} - 1\right)^{-1/\theta}, 0 \right\}$$
+
+#### Función de densidad conjunta
+
+
+```{r}
+# Definir parámetros de la cópula de Clayton
+theta1 = 2 #  dependencia positiva
+theta2 = -.9 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP3 <- claytonCopula(theta1, dim = 2)
+myCopulaN3 <- claytonCopula(theta2, dim = 2)
+
+pgrafCopula3 <- graficaDensidadCopulas2(myCopulaP3,myCopulaN3)
+```
+
+
+##### Caso Positivo
+
+```{r}
+pgrafCopula3[[1]] 
+```
+
+
+##### Caso Negativo
+
+```{r}
+pgrafCopula3[[2]]
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP3, myCopulaN3)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples8}
+library(kableExtra)
+samples8 <- simulacionSamples2(myCopulaP3,myCopulaN3, 1000000)
+
+list_tablas8<-imprimirResultadosTabla2(samples8[[1]], samples8[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas8[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas8[[1]]
+```
+
+
+### Arquimediana Frank
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=-\ln\frac{e^{-\theta u}-1}{e^{-\theta }-1}$
+
+#### Función de distribución conjunta
+
+$$H(x, y) = -\frac{1}{\theta} \ln \left( 1 + \frac{\left(e^{-\theta \left(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\right)} - 1\right)\left(e^{-\theta \left(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}\right)} - 1\right)}{e^{-\theta} - 1} \right)$$
+
+#### Función de densidad conjunta
+
+
+```{r}
+theta1 = 10 #  dependencia positiva
+theta2 = -15 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP4 <- frankCopula(theta1, dim = 2)
+myCopulaN4 <- frankCopula(theta2, dim = 2)
+
+pgrafCopula4 <- graficaDensidadCopulas2(myCopulaP4,myCopulaN4)
+```
+
+
+##### Caso Positivo
+
+```{r}
+pgrafCopula4[[1]] 
+```
+
+
+##### Caso Negativo
+
+```{r}
+pgrafCopula4[[2]]
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP4, myCopulaN4)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples9}
+library(kableExtra)
+samples9 <- simulacionSamples2(myCopulaP4,myCopulaN4, 1000000)
+
+list_tablas9<-imprimirResultadosTabla2(samples9[[1]], samples9[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas9[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas9[[1]]
+```
+
+
+### Arquimediana Ali-Mikhail-Haq (AMH)
+
+$$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
+
+donde $\phi(u)=\ln\frac{1-\theta(1-u)}{u}$
+
+#### Función de distribución conjunta
+
+$$H(x, y) =\frac{\left(1-\left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\right)\left(1-\left(\frac{\nu}{y+\nu}\right)^{\alpha}\right)}{1 - \theta \left(\frac{2\nu}{x+2\nu}\right)^{\alpha}\left(\frac{\nu}{y+\nu}\right)^{\alpha}} $$
+
+#### Función de densidad conjunta
+
+
+```{r}
+theta1 = 1 #  dependencia positiva
+theta2 = -1 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopulaP5 <- amhCopula(theta1, dim = 2)
+myCopulaN5 <- amhCopula(theta2, dim = 2)
+
+pgrafCopula5 <- graficaDensidadCopulas2(myCopulaP5,myCopulaN5)
+```
+
+
+##### Caso Positivo
+
+```{r}
+pgrafCopula5[[1]] 
+```
+
+
+##### Caso Negativo
+
+```{r}
+pgrafCopula5[[2]]
+```
+
+
+#### 2D
+
+```{r}
+graficaDependenciaCopulas2D2(myCopulaP5, myCopulaN5)
+```
+
+
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+
+
+```{r samples10}
+library(kableExtra)
+samples10 <- simulacionSamples2(myCopulaP5,myCopulaN5, 1000000)
+
+list_tablas10<-imprimirResultadosTabla2(samples10[[1]], samples10[[2]])
+```
+
+
+
+
+##### Caso Positivo
+
+
+```{r}
+library(kableExtra)
+list_tablas10[[2]]
+```
+
+
+##### Caso Negativo
+
+
+```{r}
+library(kableExtra)
+list_tablas10[[1]]
+```
+
