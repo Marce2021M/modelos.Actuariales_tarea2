@@ -91,67 +91,12 @@ grafCopula1[1]
 grafCopula1[2]
 ```
 
-#### Varianza
+#### Resultados
+
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 10000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
 
 ```{r, eval=FALSE}
 
-# Calcula las estadísticas para las muestras generadas
-# Para la correlación negativa (o positiva, según corresponda)
-## Caso positivo
-X_Positivo <- samples[,1]
-Y_Positivo <- samples[,2]
-Sum_XY_Positivo <- X_Positivo + Y_Positivo
-
-## Caso negativo
-X_Negative <- samples2[,1]
-Y_Negative <- samples2[,2]
-Sum_XY_Negative <- X_Negative + Y_Negative
-
-# Varianza
-var_X <- 1
-var_Y <- 1/4
-## Caso Positivo
-var_Sum_XY_Positivo <- var(Sum_XY_Positivo)
-## Caso Negativo
-var_Sum_XY_Negative <- var(Sum_XY_Negative)
-
-# Desviación estándar
-sd_X <- sqrt(var_X)
-sd_Y <- sqrt(var_Y)
-## Caso Positivo
-sd_Sum_XY_Positivo <- sd(Sum_XY_Positivo)
-## Caso Negativo
-sd_Sum_XY_Negative <- sd(Sum_XY_Negative)
-
-# Cuantil al 95%
-quantile_X_95 <- qexp(0.95, rate = params1)
-quantile_Y_95 <- qexp(0.95, rate = params2)
-## Caso positivo
-quantile_Sum_XY_95_Positivo <- quantile(Sum_XY_Positivo, 0.95)
-## Caso Negativo
-quantile_Sum_XY_95_Negative <- quantile(Sum_XY_Negative, 0.95)
-
-# Valor esperado condicional de la cola al 95%
-## Caso positivo
-#exp_X_Tail_95 <-
-#exp_Y_Tail_95 <- 
-mean_Sum_XY_Tail_95_Positivo <- mean(Sum_XY_Positivo[Sum_XY_Positivo > quantile_Sum_XY_95_Positivo])
-## Caso Negativo
-mean_Sum_XY_Tail_95_Negative <- mean(Sum_XY_Negative[Sum_XY_Negative > quantile_Sum_XY_95_Negative])
-
-# Imprimir los resultados
-cat("Correlación Negativa:\n")
-cat("Varianzas: X =", var_X, ", Y =", var_Y, ", X + Y =", var_Sum_XY_Negative, "\n")
-cat("Desviaciones Estándar: X =", sd_X, ", Y =", sd_Y, ", X + Y =", sd_Sum_XY_Negative, "\n")
-cat("Cuantiles al 95%: X =", quantile_X_95, ", Y =", quantile_Y_95, ", X + Y =", quantile_Sum_XY_95_Negative, "\n")
-cat("Valor esperado condicional de la cola al 95%: X =", 2, ", Y =", 2, ", X + Y =", mean_Sum_XY_Tail_95_Negative, "\n")
-
-# Imprimir los resultados
-cat("Correlación Positiva:\n")
-cat("Varianzas: X =", var_X, ", Y =", var_Y, ", X + Y =", var_Sum_XY_Positivo, "\n")
-cat("Desviaciones Estándar: X =", sd_X, ", Y =", sd_Y, ", X + Y =", sd_Sum_XY_Positivo, "\n")
-cat("Cuantiles al 95%: X =", quantile_X_95, ", Y =", quantile_Y_95, ", X + Y =", quantile_Sum_XY_95_Positivo, "\n")
-cat("Valor esperado condicional de la cola al 95%: X =", 2, ", Y =", 2, ", X + Y =", mean_Sum_XY_Tail_95_Positivo, "\n")
 
 ```
 

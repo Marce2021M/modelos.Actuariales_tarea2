@@ -124,3 +124,122 @@ graficaDependenciaCopulas2D <- function(myCopulaP, myCopulaN, n = 10000, seed = 
   return(p)
 }
 # graficaDependenciaCopulas2D(myCopulaP, myCopulaN)
+
+
+##-----------------------------------------------------------------------------------
+## RESULTADOS
+
+library(knitr)
+
+simulacionSamples <- function(myCopula1,myCopula2, n=10000, seed=191654){
+    # Generar muestras de la cópula
+    set.seed(seed)
+    samples <- rCopula(n, myCopula1) # caso positivo
+    samples2 <- rCopula(n, myCopula2) # caso negativo
+
+    # Convertir las muestras a distribuciones exponenciales
+
+    ## caso positivo
+    samples[,1] <- qexp(samples[,1], rate = params1)
+    samples[,2] <- qexp(samples[,2], rate = params2)
+
+    ## caso negativo
+    samples2[,1] <- qexp(samples2[,1], rate = params1)
+    samples2[,2] <- qexp(samples2[,2], rate = params2)
+
+
+    return(list(samples, samples2))
+}
+
+simulacionSamples2 <- function(myCopula1,myCopula2, n=10000, seed=191654){
+    # Generar muestras de la cópula
+    set.seed(seed)
+    samples <- rCopula(n, myCopula1) # caso positivo
+    samples2 <- rCopula(n, myCopula2) # caso negativo
+
+    # Convertir las muestras a distribuciones exponenciales
+
+    ## caso positivo
+    samples[,1] <- qpareto(samples[,1], shape = alpha, scale = pareto_params1)
+    samples[,2] <- qpareto(samples[,2], shape = alpha, scale = pareto_params2)
+
+    ## caso negativo
+    samples2[,1] <- qpareto(samples2[,1], shape = alpha, scale = pareto_params1)
+    samples2[,2] <- qpareto(samples2[,2], shape = alpha, scale = pareto_params2)
+
+    return(list(samples, samples2))
+}
+
+
+imprimirResultadosTabla <- function(samples1, samples2) {
+    
+    # INICIALIZAMOS VARIABLES
+    ## Caso positivo
+    X_Positivo <- samples1[,1]
+    Y_Positivo <- samples1[,2]
+    Sum_XY_Positivo <- X_Positivo + Y_Positivo
+
+    ## Caso negativo
+    X_Negative <- samples2[,1]
+    Y_Negative <- samples2[,2]
+    Sum_XY_Negative <- X_Negative + Y_Negative
+
+    # Varianza
+    var_X <- 1
+    var_Y <- 1/4
+    ## Caso Positivo
+    var_Sum_XY_Positivo <- var(Sum_XY_Positivo)
+    ## Caso Negativo
+    var_Sum_XY_Negative <- var(Sum_XY_Negative)
+
+    # Desviación estándar
+    sd_X <- sqrt(var_X)
+    sd_Y <- sqrt(var_Y)
+    ## Caso Positivo
+    sd_Sum_XY_Positivo <- sd(Sum_XY_Positivo)
+    ## Caso Negativo
+    sd_Sum_XY_Negative <- sd(Sum_XY_Negative)
+
+    # Cuantil al 95%
+    quantile_X_95 <- qexp(0.95, rate = params1)
+    quantile_Y_95 <- qexp(0.95, rate = params2)
+    ## Caso positivo
+    quantile_Sum_XY_95_Positivo <- quantile(Sum_XY_Positivo, 0.95)
+    ## Caso Negativo
+    quantile_Sum_XY_95_Negative <- quantile(Sum_XY_Negative, 0.95)
+
+    # Valor esperado condicional de la cola al 95%
+    ## Caso positivo
+    #exp_X_Tail_95 <-
+    #exp_Y_Tail_95 <- 
+    mean_Sum_XY_Tail_95_Positivo <- mean(Sum_XY_Positivo[Sum_XY_Positivo > quantile_Sum_XY_95_Positivo])
+    ## Caso Negativo
+    mean_Sum_XY_Tail_95_Negative <- mean(Sum_XY_Negative[Sum_XY_Negative > quantile_Sum_XY_95_Negative])
+
+  # Crear data frames para los resultados
+  resultadosNegativos <- data.frame(
+    Metrica = c("Varianzas", "Desviaciones Estándar", "Cuantiles al 95%", "Valor esperado condicional de la cola al 95%"),
+    X = c(var_X, sd_X, quantile_X_95, 2),  # Suponiendo que el valor 2 es un ejemplo
+    Y = c(var_Y, sd_Y, quantile_Y_95, 2),
+    `X + Y` = c(var_Sum_XY_Negative, sd_Sum_XY_Negative, quantile_Sum_XY_95_Negative, mean_Sum_XY_Tail_95_Negative)
+  )
+
+  resultadosPositivos <- data.frame(
+    Metrica = c("Varianzas", "Desviaciones Estándar", "Cuantiles al 95%", "Valor esperado condicional de la cola al 95%"),
+    X = c(var_X, sd_X, quantile_X_95, 2),
+    Y = c(var_Y, sd_Y, quantile_Y_95, 2),
+    `X + Y` = c(var_Sum_XY_Positivo, sd_Sum_XY_Positivo, quantile_Sum_XY_95_Positivo, mean_Sum_XY_Tail_95_Positivo)
+  )
+
+  # Imprimir resultados con kable
+  cat("Correlación Negativa:\n")
+  kable(resultadosNegativos, format = "html", caption = "Resultados para la Correlación Negativa") %>%
+    kable_styling(bootstrap_options = c("striped", "hover"))
+
+  cat("\nCorrelación Positiva:\n")
+  kable(resultadosPositivos, format = "html", caption = "Resultados para la Correlación Positiva") %>%
+    kable_styling(bootstrap_options = c("striped", "hover"))
+}
+
+# Ejemplo de uso
+# imprimirResultadosTabla(var_X, var_Y, var_Sum_XY_Negative, var_Sum_XY_Positivo, sd_X, sd_Y, sd_Sum_XY_Negative, sd_Sum_XY_Positivo, quantile_X_95, quantile_Y_95, quantile_Sum_XY_95_Negative, quantile_Sum_XY_95_Positivo, mean_Sum_XY_Tail_95_Negative, mean_Sum_XY_Tail_95_Positivo)
