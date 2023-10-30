@@ -335,11 +335,72 @@ p2
 ```
 
 
-### Arquimediana 2
+### Arquimediana Frank
 
 $$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
 
-donde $\phi(u)=\ln(1-\theta\ln(u))$
+donde $\phi(u)=-\ln\frac{e^{-\theta u}-1}{e^{-\theta }-1}$
+
+#### Función de distribución conjunta
+
+
+$$H(x, y) = -\frac{1}{\theta} \ln \left( 1 + \frac{(e^{-\theta (1 - e^{-\lambda x})} - 1)(e^{-\theta (1 - e^{-2\lambda x})} - 1)}{e^{-\theta} - 1} \right)$$
+
+#### Función de densidad conjunta
+
+```{r}
+# Definir parámetros de la cópula de Clayton
+theta1 = 10 #  dependencia positiva
+theta2 = -15 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopula1 <- frankCopula(theta1, dim = 2)
+myCopula2 <- frankCopula(theta2, dim = 2)
+
+# Número de muestras
+n <- 10000
+
+# Generar muestras de la cópula
+set.seed(123)
+samples1 <- rCopula(n, myCopula1) #  dependencia positiva
+samples2 <- rCopula(n, myCopula2) #  dependencia negativa
+
+# Convertir las muestras a distribuciones exponenciales
+samples1[,1] <- qexp(samples1[,1], rate = params1)
+samples1[,2] <- qexp(samples1[,2], rate = params2)
+samples2[,1] <- qexp(samples2[,1], rate = params1)
+samples2[,2] <- qexp(samples2[,2], rate = params2)
+
+# Estimación de la densidad
+dens1 <- kde(as.matrix(samples1)) #  dependencia positiva
+dens2 <- kde(as.matrix(samples2)) #  dependencia negativa
+
+# Convertir la estimación de densidad a un formato adecuado
+x1 <- dens1$eval.points[[1]] 
+y1 <- dens1$eval.points[[2]]
+z1 <- matrix(dens1$estimate, nrow = length(x1), ncol = length(y1))
+
+x2 <- dens2$eval.points[[1]] 
+y2 <- dens2$eval.points[[2]]
+z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
+
+# Crear gráficos interactivos con plotly
+p1 <- plot_ly(x = ~x1, y = ~y1, z = ~z1) %>% add_surface()
+p2 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
+```
+
+##### Caso Positivo
+
+```{r}
+p1
+```
+
+
+##### Caso Negativo
+
+```{r}
+p2
+```
 
 ### Arquimediana 3
 
