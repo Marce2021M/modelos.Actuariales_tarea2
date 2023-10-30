@@ -52,7 +52,7 @@ params2 <- 2*lambda # Rate for the second exponential distribution
 
 $$C(u,v)=\Phi_{2}(\Phi^{-1}(u),\Phi^{-1}(v), \rho)$$
 
-donde $\Phi_{2}$ es la función de distribución conjunta de una distribución normal bivariada con media cero y varianza uno y covarianza $\rho$ (esta determinará la relación negativa o positiva de las variables); y $\Phi$ es la función de distribución de una distribución normal estándar.
+donde $\Phi_{2}$ es la función de distribución conjunta de una distribución normal bivariada con media cero y varianza uno y correlación $\rho$ (esta determinará la relación negativa o positiva de las variables); y $\Phi$ es la función de distribución de una distribución normal estándar.
 
 
 #### Función de distribución conjunta
@@ -189,57 +189,150 @@ cat("Valor esperado condicional de la cola al 95%: X =", 2, ", Y =", 2, ", X + Y
 ```
 
 
-### Cópula Marshall-Olkin
+### Cópula t-Student
 
-$$\hat{C}(u,v)=(1-u)(1-v)\textbf{mín}\{(1-u)^{-\alpha_{1}},(1-u)^{-\alpha_{1}}\}$$
+$$C(u,v)=\textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(u),\textbf{t}_{\nu}^{-1}(v); \rho)$$
+
+donde $\textbf{t}_{\nu}(;\rho)$ es la función de distribución conjunta de una distribución t-Student bivariada estandarizada y con correlación $\rho$ (esta determinará la relación negativa o positiva de las variables); y $\textbf{t}_{\nu}$ es la función de distribución de una distribución univaria t-Student.
 
 #### Función de distribución conjunta
 
-Primero notemos que esta sería la distribución conjunta de supervivencia de $X$ y $Y$:
+$$H(x, y) = \textbf{t}_{\nu}(\textbf{t}_{\nu}^{-1}(1 - e^{-\lambda x}), \textbf{t}_{\nu}^{-1}(1 - e^{-2\lambda y}); \rho)$$
 
-$$S(x, y) = (e^{-\lambda x})(e^{-2\lambda y})\textbf{mín}\{(e^{-\lambda x})^{-\alpha_{1}},(e^{-2\lambda y})^{-\alpha_{1}}\}$$
-
-Ahora mostraremos la distribución conjunta de $X$ y $Y$:
-$$H(x,y)= $$
 
 #### Función de densidad conjunta
 
 ```{r, message=FALSE, warning=FALSE}
 
-# Parámetros
-alpha <- c(.001,.001) #negativo
+# Parámetros de la cópula y las distribuciones marginales
+rho = 0.9
+df = 4 # Grados de libertad para la cópula t de Student
+params1 = 1 # Parámetro para la primera distribución exponencial
+params2 = 1 # Parámetro para la segunda distribución exponencial
 
-# Cópula de Marshall-Olkin
-copula_mo <- moCopula(param = alpha, dim = 2)
+# Definir cópulas t de Student
+myCopulaP <- tCopula(rho, dim = 2, df = df)
+myCopulaN <- tCopula(-rho, dim = 2, df = df)
 
-# Función para generar datos
-generate_data <- function(copula, n){
-  u <- rCopula(n, copula)
-  return(data.frame(x = qexp(u[,1], rate = params1), 
-                    y = qexp(u[,2], rate = params2)))
-}
+# Número de muestras
+n <- 10000
 
-# Generar datos
+# Generar muestras de la cópula
 set.seed(123)
-data <- generate_data(copula_mo, 10000)
-(cor<- cor(data$x,data$y, method = "kendall"))
+samples <- rCopula(n, myCopulaP) # Caso positivo
+samples2 <- rCopula(n, myCopulaN) # Caso negativo
 
-# Graficar
-ggplot(data, aes(x = x, y = y)) + 
-  geom_point(alpha = 0.4) + 
-  theme_minimal() +
-  labs(title = "Distribuciones Exponenciales con Dependencia Positiva (Cópula de Marshall-Olkin)",
-       x = "Exponencial con lambda",
-       y = "Exponencial con 2*lambda")
+# Convertir las muestras a distribuciones exponenciales
+samples[,1] <- qexp(samples[,1], rate = params1)
+samples[,2] <- qexp(samples[,2], rate = params2)
+samples2[,1] <- qexp(samples2[,1], rate = params1)
+samples2[,2] <- qexp(samples2[,2], rate = params2)
 
+# Estimación de la densidad
+dens <- kde(as.matrix(samples)) # Caso positivo
+dens2 <- kde(as.matrix(samples2)) # Caso negativo
+
+# Convertir la estimación de densidad a un formato adecuado
+x <- dens$eval.points[[1]] 
+y <- dens$eval.points[[2]]
+z <- matrix(dens$estimate, nrow = length(x), ncol = length(y))
+
+x2 <- dens2$eval.points[[1]] 
+y2 <- dens2$eval.points[[2]]
+z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
+
+# Crear gráficos interactivos con plotly
+p <- plot_ly(x = ~x, y = ~y, z = ~z) %>% add_surface()
+p2 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
+```
+
+##### Caso Positivo
+```{r}
+# Mostrar los gráficos
+p
 
 ```
 
-### Arquimediana 1
+
+
+##### Caso Negativo
+```{r}
+# Mostrar los gráficos
+p2
+
+```
+
+### Varianza
+
+```{r}
+
+```
+
+### Arquimediana Clayton
 
 $$C(u,v)=\phi^{-1}(\phi(u)+\phi(v))$$ 
 
-donde $\phi(u)=(-\ln u)^{\theta}$
+donde $\phi(u)=\frac{1}{\theta}\left(t^{-\theta}-1\right)$
+
+#### Función de distribución conjunta
+
+$$H(x, y) = \max \left\{ \left((1 - e^{-\lambda x})^{-\theta} + (1 - e^{-2\lambda y})^{-\theta} - 1\right)^{-1/\theta}, 0 \right\}$$
+
+#### Función de densidad conjunta
+
+```{r}
+# Definir parámetros de la cópula de Clayton
+theta1 = 2 #  dependencia positiva
+theta2 = -.9 #  dependencia negativa
+
+# Definir cópulas de Clayton
+myCopula1 <- claytonCopula(theta1, dim = 2)
+myCopula2 <- claytonCopula(theta2, dim = 2)
+
+# Número de muestras
+n <- 10000
+
+# Generar muestras de la cópula
+set.seed(123)
+samples1 <- rCopula(n, myCopula1) #  dependencia positiva
+samples2 <- rCopula(n, myCopula2) #  dependencia negativa
+
+# Convertir las muestras a distribuciones exponenciales
+samples1[,1] <- qexp(samples1[,1], rate = params1)
+samples1[,2] <- qexp(samples1[,2], rate = params2)
+samples2[,1] <- qexp(samples2[,1], rate = params1)
+samples2[,2] <- qexp(samples2[,2], rate = params2)
+
+# Estimación de la densidad
+dens1 <- kde(as.matrix(samples1)) #  dependencia positiva
+dens2 <- kde(as.matrix(samples2)) #  dependencia negativa
+
+# Convertir la estimación de densidad a un formato adecuado
+x1 <- dens1$eval.points[[1]] 
+y1 <- dens1$eval.points[[2]]
+z1 <- matrix(dens1$estimate, nrow = length(x1), ncol = length(y1))
+
+x2 <- dens2$eval.points[[1]] 
+y2 <- dens2$eval.points[[2]]
+z2 <- matrix(dens2$estimate, nrow = length(x2), ncol = length(y2))
+
+# Crear gráficos interactivos con plotly
+p1 <- plot_ly(x = ~x1, y = ~y1, z = ~z1) %>% add_surface()
+p2 <- plot_ly(x = ~x2, y = ~y2, z = ~z2) %>% add_surface()
+```
+
+##### Caso Positivo
+
+```{r}
+p1
+```
+
+
+##### Caso Negativo
+
+```{r}
+p2
+```
 
 
 ### Arquimediana 2
