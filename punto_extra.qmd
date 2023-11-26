@@ -146,7 +146,7 @@ graficaDependenciaCopulas2D(myCopulaP1, myCopulaN1)
 
 #### Resultados
 
-Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica.
+Para obtener los resultados de las estadísticas pedidas se generó una muestra de 1000000 observaciones de la cópula y se calcularon las estadísticas para cada una de las variables aleatorias $X$ y $Y$ y para la suma de ambas $X+Y$. Cabe resaltar que como sí conocemos muy bien las variables aleatorias $X$ y $Y$, las estadísticas de estas fueron calculadas de manera analítica. Por último, es importante destacar que el error medio para todos los cálculos simulados es de aproximadamente .005 siendo conservadores en el cálculo y usando un resultado del método Delta no paramétrico.
 
 ```{r samples1}
 library(kableExtra)
